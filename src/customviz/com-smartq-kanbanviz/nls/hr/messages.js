@@ -12,7 +12,7 @@ define({
   "KANBAN_BOARD_TITLE": "Kanban ploča",
   "TASK_COUNT_LABEL": "Broj zadataka",
   "OVERDUE_LABEL": "Zakašnjelo",
-  "DUE_IN_30_DAYS_LABEL": "Rok u 30 dana",
+  "DUE_IN_30_DAYS_LABEL": "Pred istekom roka",
   "TASKS_LABEL": "zadataka",
 
   // Lane configuration

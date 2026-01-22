@@ -12,7 +12,7 @@ define({
   "KANBAN_BOARD_TITLE": "Kanban-Tafel",
   "TASK_COUNT_LABEL": "Anzahl der Aufgaben",
   "OVERDUE_LABEL": "Überfällig",
-  "DUE_IN_30_DAYS_LABEL": "Fällig in 30 Tagen",
+  "DUE_IN_30_DAYS_LABEL": "Fast fällig",
   "TASKS_LABEL": "Aufgaben",
 
   // Lane configuration

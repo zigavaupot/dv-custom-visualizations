@@ -12,7 +12,7 @@ define({
   "KANBAN_BOARD_TITLE": "Kanban tabela",
   "TASK_COUNT_LABEL": "Št. nalog",
   "OVERDUE_LABEL": "Zamujenih",
-  "DUE_IN_30_DAYS_LABEL": "Rok v 30 dnevih",
+  "DUE_IN_30_DAYS_LABEL": "Tik pred rokom",
   "TASKS_LABEL": "nalog",
 
   // Lane configuration

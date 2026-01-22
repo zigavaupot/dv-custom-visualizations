@@ -11,7 +11,7 @@ define({
   "CALENDAR_TITLE": "Kalender",
   "TASK_COUNT_LABEL": "Anzahl der Aufgaben",
   "OVERDUE_LABEL": "Überfällig",
-  "DUE_IN_30_DAYS_LABEL": "Vor Frist",
+  "DUE_IN_30_DAYS_LABEL": "Fast fällig",
   "TODAY_BUTTON": "Heute",
   "PREV_MONTH_TOOLTIP": "Vorheriger Monat",
   "NEXT_MONTH_TOOLTIP": "Nächster Monat",

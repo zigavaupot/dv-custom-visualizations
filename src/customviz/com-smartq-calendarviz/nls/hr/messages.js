@@ -11,7 +11,7 @@ define({
   "CALENDAR_TITLE": "Kalendar",
   "TASK_COUNT_LABEL": "Broj zadataka",
   "OVERDUE_LABEL": "Zakašnjelo",
-  "DUE_IN_30_DAYS_LABEL": "Prije roka",
+  "DUE_IN_30_DAYS_LABEL": "Pred istekom roka",
   "TODAY_BUTTON": "Danas",
   "PREV_MONTH_TOOLTIP": "Prethodni mjesec",
   "NEXT_MONTH_TOOLTIP": "Sljedeći mjesec",

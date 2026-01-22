@@ -14,7 +14,7 @@ define({
   "CALENDAR_TITLE": "Koledar",
   "TASK_COUNT_LABEL": "Št. nalog",
   "OVERDUE_LABEL": "Zamujenih",
-  "DUE_IN_30_DAYS_LABEL": "Pred rokom",
+  "DUE_IN_30_DAYS_LABEL": "Tik pred rokom",
   "TODAY_BUTTON": "Danes",
   "PREV_MONTH_TOOLTIP": "Prejšnji mesec",
   "NEXT_MONTH_TOOLTIP": "Naslednji mesec",

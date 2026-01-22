@@ -14,7 +14,7 @@ define({
   "CALENDAR_TITLE": "Calendar",
   "TASK_COUNT_LABEL": "Number of tasks",
   "OVERDUE_LABEL": "Overdue",
-  "DUE_IN_30_DAYS_LABEL": "Before deadline",
+  "DUE_IN_30_DAYS_LABEL": "Almost due",
   "TODAY_BUTTON": "Today",
   "PREV_MONTH_TOOLTIP": "Previous month",
   "NEXT_MONTH_TOOLTIP": "Next month",

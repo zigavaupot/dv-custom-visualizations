@@ -11,7 +11,7 @@ define({
   "CALENDAR_TITLE": "Calendrier",
   "TASK_COUNT_LABEL": "Nombre de tâches",
   "OVERDUE_LABEL": "En retard",
-  "DUE_IN_30_DAYS_LABEL": "Avant échéance",
+  "DUE_IN_30_DAYS_LABEL": "Presque à échéance",
   "TODAY_BUTTON": "Aujourd'hui",
   "PREV_MONTH_TOOLTIP": "Mois précédent",
   "NEXT_MONTH_TOOLTIP": "Mois suivant",

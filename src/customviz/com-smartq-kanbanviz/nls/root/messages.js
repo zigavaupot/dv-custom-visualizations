@@ -12,7 +12,7 @@ define({
   "KANBAN_BOARD_TITLE": "Kanban Board",
   "TASK_COUNT_LABEL": "Number of tasks",
   "OVERDUE_LABEL": "Overdue",
-  "DUE_IN_30_DAYS_LABEL": "Due in 30 days",
+  "DUE_IN_30_DAYS_LABEL": "Almost Due",
   "TASKS_LABEL": "tasks",
 
   // Lane configuration
