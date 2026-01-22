@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<obiplugin xmlns="http://plugin.frameworks.tech.bi.oracle" id="com-smartq-calendarviz" name="com-smartq-calendarviz" version="1.0.0.1769079730900" optimized="false" optimizable="true" category="customviz" categoryVersion="1.0.0.1769079730900">
+<obiplugin xmlns="http://plugin.frameworks.tech.bi.oracle" id="com-smartq-calendarviz" name="com-smartq-calendarviz" version="1.0.0.1769084543499" optimized="false" optimizable="true" category="customviz" categoryVersion="1.0.0.1769084543499">
     <resources>
         <resource type="binary" id="COLOR_CONFIGURATION" path="COLOR_CONFIGURATION.md"/>
         <resource type="script" id="calendarViz" path="calendarViz.js"/>

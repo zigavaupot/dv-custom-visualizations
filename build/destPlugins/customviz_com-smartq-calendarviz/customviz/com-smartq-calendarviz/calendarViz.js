@@ -16,8 +16,12 @@ define([
     'com-smartq-calendarviz/colorConfig',
     'com-smartq-calendarviz/nls/root/messages',
     'com-smartq-calendarviz/nls/sl/messages',
+    'com-smartq-calendarviz/nls/fr/messages',
+    'com-smartq-calendarviz/nls/de/messages',
+    'com-smartq-calendarviz/nls/es/messages',
+    'com-smartq-calendarviz/nls/hr/messages',
     'css!com-smartq-calendarviz/calendarVizstyles'
-], function($, jsx, dataviz, datamodelshapes, data, events, interactions, logger, colorConfig, messages_en, messages_sl) {
+], function($, jsx, dataviz, datamodelshapes, data, events, interactions, logger, colorConfig, messages_en, messages_sl, messages_fr, messages_de, messages_es, messages_hr) {
     'use strict';
 
     var MODULE_NAME = "CalendarViz";
@@ -26,8 +30,12 @@ define([
     // ========================================================================
     // LOCALIZATION (NLS) - Language support
     // Translations loaded from external NLS files:
-    // - com-smartq-calendarviz/nls/root/messages.js (English)
-    // - com-smartq-calendarviz/nls/sl/messages.js (Slovenian)
+    // - root/messages.js (English - default)
+    // - sl/messages.js (Slovenian)
+    // - fr/messages.js (French)
+    // - de/messages.js (German)
+    // - es/messages.js (Spanish)
+    // - hr/messages.js (Croatian)
     // ========================================================================
 
     /**
@@ -99,10 +107,22 @@ define([
 
             console.log('[CalendarViz] Detected browser language:', userLang);
 
-            // Check for Slovenian (sl, sl-SI, etc.)
+            // Check language prefix and load appropriate translations
             if (userLang.indexOf('sl') === 0) {
                 messages = buildMessagesWithArrays(messages_sl);
                 console.log('[CalendarViz] Using Slovenian translations from NLS file');
+            } else if (userLang.indexOf('fr') === 0) {
+                messages = buildMessagesWithArrays(messages_fr);
+                console.log('[CalendarViz] Using French translations from NLS file');
+            } else if (userLang.indexOf('de') === 0) {
+                messages = buildMessagesWithArrays(messages_de);
+                console.log('[CalendarViz] Using German translations from NLS file');
+            } else if (userLang.indexOf('es') === 0) {
+                messages = buildMessagesWithArrays(messages_es);
+                console.log('[CalendarViz] Using Spanish translations from NLS file');
+            } else if (userLang.indexOf('hr') === 0) {
+                messages = buildMessagesWithArrays(messages_hr);
+                console.log('[CalendarViz] Using Croatian translations from NLS file');
             } else {
                 messages = buildMessagesWithArrays(messages_en);
                 console.log('[CalendarViz] Using English translations from NLS file (default)');

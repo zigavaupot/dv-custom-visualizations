@@ -14,7 +14,7 @@
 ## Overview
 
 The Calendar visualization displays tasks in a monthly calendar grid format. Tasks are positioned on their completion date (Rok izvedbe). It supports:
-- **Multi-language** translations (English and Slovenian)
+- **Multi-language** translations (English, Slovenian, French, German, Spanish, Croatian)
 - **Configurable UI text** including day names, month names, and labels
 - **External color configuration** for easy customization
 - **Automatic language detection** based on browser settings
@@ -68,15 +68,16 @@ All user-facing text is stored in external NLS (National Language Support) files
 
 ### Language Files Location
 
-**English (default):**
-```
-src/customviz/com-smartq-calendarviz/nls/root/messages.js
-```
+The visualization supports 6 languages:
 
-**Slovenian:**
-```
-src/customviz/com-smartq-calendarviz/nls/sl/messages.js
-```
+| Language | Code | File Path |
+|----------|------|-----------|
+| English (default) | en | `nls/root/messages.js` |
+| Slovenian | sl | `nls/sl/messages.js` |
+| French | fr | `nls/fr/messages.js` |
+| German | de | `nls/de/messages.js` |
+| Spanish | es | `nls/es/messages.js` |
+| Croatian | hr | `nls/hr/messages.js` |
 
 **Language registration:**
 ```
@@ -225,10 +226,14 @@ Upload `build/distributions/customviz_com-smartq-calendarviz.zip` to Oracle Anal
 
 ### Language Detection
 
-The visualization automatically detects browser language:
+The visualization automatically detects browser language and loads the appropriate translations:
 
-- **Slovenian browser** (sl, sl-SI, etc.) → Uses `nls/sl/messages.js`
-- **Any other language** → Uses `nls/root/messages.js` (English)
+- **Slovenian** (sl, sl-SI, etc.) → Uses `nls/sl/messages.js`
+- **French** (fr, fr-FR, etc.) → Uses `nls/fr/messages.js`
+- **German** (de, de-DE, etc.) → Uses `nls/de/messages.js`
+- **Spanish** (es, es-ES, etc.) → Uses `nls/es/messages.js`
+- **Croatian** (hr, hr-HR, etc.) → Uses `nls/hr/messages.js`
+- **Any other language** → Uses `nls/root/messages.js` (English - default)
 
 **To test different languages:**
 - **Chrome:** Settings → Languages → Move preferred language to top

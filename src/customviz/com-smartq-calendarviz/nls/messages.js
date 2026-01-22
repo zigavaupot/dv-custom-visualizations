@@ -6,9 +6,9 @@
  */
 define({
     "root": true,
-    "sl": true  // Slovenian
-    // Add additional locale configurations here, for example:
-    // "de": true,
-    // "fr": true,
-    // "es": true
+    "sl": true,  // Slovenian
+    "fr": true,  // French
+    "de": true,  // German
+    "es": true,  // Spanish
+    "hr": true   // Croatian
 });

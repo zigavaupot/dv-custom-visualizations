@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<obiplugin xmlns="http://plugin.frameworks.tech.bi.oracle" id="com-smartq-kanbanviz" name="com-smartq-kanbanviz" version="1.0.0.1769079731161" optimized="false" optimizable="true" category="customviz" categoryVersion="1.0.0.1769079731161">
+<obiplugin xmlns="http://plugin.frameworks.tech.bi.oracle" id="com-smartq-kanbanviz" name="com-smartq-kanbanviz" version="1.0.0.1769084543686" optimized="false" optimizable="true" category="customviz" categoryVersion="1.0.0.1769084543686">
     <resources>
         <resource type="binary" id="COLOR_CONFIGURATION" path="COLOR_CONFIGURATION.md"/>
         <resource type="binary" id="kanbanVizIcon" path="kanbanVizIcon.png"/>

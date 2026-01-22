@@ -3,7 +3,7 @@
 ## Overview
 
 Both Kanban and Calendar visualizations have been fully configured with:
-1. **Multi-language support** (English and Slovenian) via external NLS files
+1. **Multi-language support** (English, Slovenian, French, German, Spanish, Croatian) via external NLS files
 2. **External color configuration** files for easy customization
 3. **Configurable lane headers** (Kanban only) with separation of logic and display text
 
@@ -13,10 +13,14 @@ Both Kanban and Calendar visualizations have been fully configured with:
 
 #### ✅ Multi-Language Support (NLS)
 - **Location:** `src/customviz/com-smartq-kanbanviz/nls/`
-- **Files:**
-  - `nls/root/messages.js` - English translations
-  - `nls/sl/messages.js` - Slovenian translations
-  - `nls/messages.js` - Language registration
+- **Supported Languages:**
+  - English (en) - `nls/root/messages.js`
+  - Slovenian (sl) - `nls/sl/messages.js`
+  - French (fr) - `nls/fr/messages.js`
+  - German (de) - `nls/de/messages.js`
+  - Spanish (es) - `nls/es/messages.js`
+  - Croatian (hr) - `nls/hr/messages.js`
+- **Language registration:** `nls/messages.js`
 - **Implementation:** Loads from external NLS files instead of embedded code
 - **Language detection:** Automatic based on browser settings
 
@@ -47,10 +51,14 @@ Both Kanban and Calendar visualizations have been fully configured with:
 
 #### ✅ Multi-Language Support (NLS)
 - **Location:** `src/customviz/com-smartq-calendarviz/nls/`
-- **Files:**
-  - `nls/root/messages.js` - English translations
-  - `nls/sl/messages.js` - Slovenian translations
-  - `nls/messages.js` - Language registration
+- **Supported Languages:**
+  - English (en) - `nls/root/messages.js`
+  - Slovenian (sl) - `nls/sl/messages.js`
+  - French (fr) - `nls/fr/messages.js`
+  - German (de) - `nls/de/messages.js`
+  - Spanish (es) - `nls/es/messages.js`
+  - Croatian (hr) - `nls/hr/messages.js`
+- **Language registration:** `nls/messages.js`
 - **Implementation:** Loads from external NLS files with helper function for arrays
 - **Language detection:** Automatic based on browser settings
 
@@ -84,11 +92,21 @@ src/customviz/com-smartq-{plugin}/
 │   ├── messages.js          # Language registration
 │   ├── root/
 │   │   └── messages.js      # English translations
-│   └── sl/
-│       └── messages.js      # Slovenian translations
+│   ├── sl/
+│   │   └── messages.js      # Slovenian translations
+│   ├── fr/
+│   │   └── messages.js      # French translations
+│   ├── de/
+│   │   └── messages.js      # German translations
+│   ├── es/
+│   │   └── messages.js      # Spanish translations
+│   └── hr/
+│       └── messages.js      # Croatian translations
 ```
 
 ### Language Detection Logic
+
+Both visualizations support automatic language detection for 6 languages:
 
 ```javascript
 var userLang = navigator.language || navigator.userLanguage || 'en';
@@ -96,6 +114,14 @@ userLang = userLang.toLowerCase();
 
 if (userLang.indexOf('sl') === 0) {
     messages = messages_sl;  // Slovenian
+} else if (userLang.indexOf('fr') === 0) {
+    messages = messages_fr;  // French
+} else if (userLang.indexOf('de') === 0) {
+    messages = messages_de;  // German
+} else if (userLang.indexOf('es') === 0) {
+    messages = messages_es;  // Spanish
+} else if (userLang.indexOf('hr') === 0) {
+    messages = messages_hr;  // Croatian
 } else {
     messages = messages_en;  // English (default)
 }
@@ -158,15 +184,23 @@ src/customviz/
 │   ├── colorConfig.js           # Color configuration
 │   └── nls/                     # Translation files
 │       ├── messages.js
-│       ├── root/messages.js
-│       └── sl/messages.js
+│       ├── root/messages.js     # English
+│       ├── sl/messages.js       # Slovenian
+│       ├── fr/messages.js       # French
+│       ├── de/messages.js       # German
+│       ├── es/messages.js       # Spanish
+│       └── hr/messages.js       # Croatian
 └── com-smartq-calendarviz/
     ├── calendarViz.js           # Main visualization
     ├── colorConfig.js           # Color configuration
     └── nls/                     # Translation files
         ├── messages.js
-        ├── root/messages.js
-        └── sl/messages.js
+        ├── root/messages.js     # English
+        ├── sl/messages.js       # Slovenian
+        ├── fr/messages.js       # French
+        ├── de/messages.js       # German
+        ├── es/messages.js       # Spanish
+        └── hr/messages.js       # Croatian
 ```
 
 ## Deployment Instructions
@@ -201,6 +235,230 @@ cd /Users/zigavaupot/Documents/dv-custom-plugins
    - Chrome: Settings → Languages
    - Firefox: Settings → Language
    - Safari: System Preferences → Language & Region
+
+## Adding Additional Languages
+
+To add support for a new language to either visualization, follow these steps:
+
+### Step 1: Create Language Folder
+
+1. Navigate to the NLS directory:
+   ```bash
+   # For Kanban:
+   cd src/customviz/com-smartq-kanbanviz/nls/
+
+   # For Calendar:
+   cd src/customviz/com-smartq-calendarviz/nls/
+   ```
+
+2. Copy an existing language folder as a template:
+   ```bash
+   # Example: Adding Italian (it)
+   cp -r root/ it/
+   ```
+
+### Step 2: Translate Messages
+
+1. Open the new `messages.js` file:
+   ```bash
+   # For Kanban:
+   nano it/messages.js
+
+   # For Calendar:
+   nano it/messages.js
+   ```
+
+2. Translate all text values to the new language:
+   - Keep all property names (keys) unchanged
+   - Only translate the string values
+   - For Kanban: Keep `LANE_X_PERCENT` values (e.g., "0%", "25%") unchanged, only translate `LANE_X_PERCENT_HEADER` values
+   - For Calendar: Translate month names, day names, and all UI labels
+
+**Example for Kanban (Italian):**
+```javascript
+define({
+  "KANBAN_BOARD_TITLE": "Tavola Kanban",
+  "TASK_COUNT_LABEL": "Numero di attività",
+  "OVERDUE_LABEL": "In ritardo",
+  "DUE_IN_30_DAYS_LABEL": "Prima della scadenza",
+
+  // Lane logic values - DO NOT CHANGE
+  "LANE_0_PERCENT": "0%",
+  "LANE_10_PERCENT": "10%",
+  // ... etc
+
+  // Lane headers - TRANSLATE THESE
+  "LANE_0_PERCENT_HEADER": "Non iniziato",
+  "LANE_10_PERCENT_HEADER": "Appena iniziato",
+  // ... etc
+});
+```
+
+**Example for Calendar (Italian):**
+```javascript
+define({
+  "CALENDAR_TITLE": "Calendario",
+  "TODAY_BUTTON": "Oggi",
+  "MONTH_JANUARY": "Gennaio",
+  "MONTH_FEBRUARY": "Febbraio",
+  // ... all months
+  "DAY_MONDAY": "LUN",
+  "DAY_TUESDAY": "MAR",
+  // ... all days
+});
+```
+
+### Step 3: Register the Language
+
+1. Open the language registration file:
+   ```bash
+   nano nls/messages.js
+   ```
+
+2. Add the new language code:
+   ```javascript
+   define({
+     "root": true,
+     "sl": true,  // Slovenian
+     "fr": true,  // French
+     "de": true,  // German
+     "es": true,  // Spanish
+     "hr": true,  // Croatian
+     "it": true   // Italian (NEW)
+   });
+   ```
+
+### Step 4: Update Visualization Code
+
+1. Open the main visualization file:
+   ```bash
+   # For Kanban:
+   nano kanbanViz.js
+
+   # For Calendar:
+   nano calendarViz.js
+   ```
+
+2. Add the new language module to the `define()` dependencies:
+   ```javascript
+   define([
+     // ... existing dependencies
+     'com-smartq-kanbanviz/nls/root/messages',
+     'com-smartq-kanbanviz/nls/sl/messages',
+     'com-smartq-kanbanviz/nls/fr/messages',
+     'com-smartq-kanbanviz/nls/de/messages',
+     'com-smartq-kanbanviz/nls/es/messages',
+     'com-smartq-kanbanviz/nls/hr/messages',
+     'com-smartq-kanbanviz/nls/it/messages',  // NEW
+     // ...
+   ], function(..., messages_en, messages_sl, messages_fr, messages_de, messages_es, messages_hr, messages_it) {
+   ```
+
+3. Add language detection for the new language:
+   ```javascript
+   // Language detection
+   var userLang = navigator.language || navigator.userLanguage || 'en';
+   userLang = userLang.toLowerCase();
+
+   if (userLang.indexOf('sl') === 0) {
+     messages = messages_sl;
+   } else if (userLang.indexOf('fr') === 0) {
+     messages = messages_fr;
+   } else if (userLang.indexOf('de') === 0) {
+     messages = messages_de;
+   } else if (userLang.indexOf('es') === 0) {
+     messages = messages_es;
+   } else if (userLang.indexOf('hr') === 0) {
+     messages = messages_hr;
+   } else if (userLang.indexOf('it') === 0) {  // NEW
+     messages = messages_it;
+   } else {
+     messages = messages_en;  // English (default)
+   }
+   ```
+
+   **For Calendar only**, also update the buildMessagesWithArrays call:
+   ```javascript
+   } else if (userLang.indexOf('it') === 0) {
+     messages = buildMessagesWithArrays(messages_it);
+   }
+   ```
+
+4. Add console logging for the new language:
+   ```javascript
+   if (userLang.indexOf('it') === 0) {
+     messages = ...;
+     console.log('[KanbanViz] Using Italian translations from NLS file');
+   }
+   ```
+
+### Step 5: Rebuild and Package
+
+1. Build the plugin:
+   ```bash
+   cd /Users/zigavaupot/Documents/dv-custom-plugins
+   ./gradlew clean build
+   ```
+
+2. Locate the distribution ZIP files:
+   ```
+   build/distributions/customviz_com-smartq-kanbanviz.zip
+   build/distributions/customviz_com-smartq-calendarviz.zip
+   ```
+
+### Step 6: Deploy and Test
+
+1. Upload the new ZIP file to Oracle Analytics (Console → Plugins)
+2. Clear browser cache completely
+3. Change browser language to the new language:
+   - Chrome: Settings → Languages → Add language → Set as preferred
+   - Firefox: Settings → Language → Add language → Move to top
+   - Safari: System Preferences → Language & Region → Add language
+4. Hard refresh (Cmd+Shift+R / Ctrl+Shift+R)
+5. Verify the visualization displays in the new language
+6. Check browser console for confirmation:
+   ```
+   [KanbanViz] Detected browser language: it-IT
+   [KanbanViz] Using Italian translations from NLS file
+   ```
+
+### Language Code Reference
+
+Common language codes for the `indexOf()` check:
+- `'en'` - English
+- `'sl'` - Slovenian
+- `'fr'` - French
+- `'de'` - German
+- `'es'` - Spanish
+- `'hr'` - Croatian
+- `'it'` - Italian
+- `'pt'` - Portuguese
+- `'nl'` - Dutch
+- `'pl'` - Polish
+- `'cs'` - Czech
+- `'sk'` - Slovak
+- `'ru'` - Russian
+- `'ja'` - Japanese
+- `'zh'` - Chinese
+- `'ar'` - Arabic
+
+### Troubleshooting New Languages
+
+**Issue: New language not loading**
+- Verify language code in `nls/messages.js` matches folder name
+- Check that module path in `define()` is correct
+- Ensure `indexOf()` check matches the language code
+- Clear browser cache and hard refresh
+
+**Issue: Syntax errors**
+- Validate JSON syntax in messages.js (no trailing commas)
+- Ensure all strings are properly quoted
+- Check that all property names match the original template
+
+**Issue: Partial translations**
+- Verify all properties from the original file are present
+- Check for typos in property names (they must match exactly)
+- Ensure no properties were accidentally deleted
 
 ## Benefits of This Implementation
 
@@ -276,10 +534,12 @@ cd /Users/zigavaupot/Documents/dv-custom-plugins
 Possible future improvements:
 
 1. **More Languages**
-   - German (de)
-   - French (fr)
-   - Spanish (es)
    - Italian (it)
+   - Portuguese (pt)
+   - Dutch (nl)
+   - Polish (pl)
+   - Czech (cs)
+   - Slovak (sk)
 
 2. **Additional Customization**
    - Date format preferences per language
@@ -307,6 +567,12 @@ For issues or questions:
 5. Clear cache and hard refresh after changes
 
 ## Version History
+
+### Version 1.1 - Extended Language Support (January 2026)
+- Added 4 new languages: French, German, Spanish, Croatian
+- Updated documentation with language addition guide
+- Total of 6 supported languages
+- Added comprehensive instructions for adding new languages
 
 ### Version 1.0 - Initial Implementation (January 2026)
 - Multi-language support (English, Slovenian)

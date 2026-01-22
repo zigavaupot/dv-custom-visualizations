@@ -10,6 +10,10 @@ define([
   'com-smartq-kanbanviz/colorConfig',
   'com-smartq-kanbanviz/nls/root/messages',
   'com-smartq-kanbanviz/nls/sl/messages',
+  'com-smartq-kanbanviz/nls/fr/messages',
+  'com-smartq-kanbanviz/nls/de/messages',
+  'com-smartq-kanbanviz/nls/es/messages',
+  'com-smartq-kanbanviz/nls/hr/messages',
   'css!com-smartq-kanbanviz/kanbanVizstyles'
 ], function(
   $,
@@ -22,7 +26,11 @@ define([
   logger,
   colorConfig,
   messages_en,
-  messages_sl
+  messages_sl,
+  messages_fr,
+  messages_de,
+  messages_es,
+  messages_hr
 ) {
   "use strict";
 
@@ -32,8 +40,12 @@ define([
   // ========================================================================
   // LOCALIZATION (NLS) - Language support
   // Translations loaded from external NLS files:
-  // - com-smartq-kanbanviz/nls/root/messages.js (English)
-  // - com-smartq-kanbanviz/nls/sl/messages.js (Slovenian)
+  // - root/messages.js (English - default)
+  // - sl/messages.js (Slovenian)
+  // - fr/messages.js (French)
+  // - de/messages.js (German)
+  // - es/messages.js (Spanish)
+  // - hr/messages.js (Croatian)
   // ========================================================================
   var messages;
 
@@ -45,10 +57,22 @@ define([
 
       console.log('[KanbanViz] Detected browser language:', userLang);
 
-      // Check for Slovenian (sl, sl-SI, etc.)
+      // Check language prefix and load appropriate translations
       if (userLang.indexOf('sl') === 0) {
         messages = messages_sl;
         console.log('[KanbanViz] Using Slovenian translations from NLS file');
+      } else if (userLang.indexOf('fr') === 0) {
+        messages = messages_fr;
+        console.log('[KanbanViz] Using French translations from NLS file');
+      } else if (userLang.indexOf('de') === 0) {
+        messages = messages_de;
+        console.log('[KanbanViz] Using German translations from NLS file');
+      } else if (userLang.indexOf('es') === 0) {
+        messages = messages_es;
+        console.log('[KanbanViz] Using Spanish translations from NLS file');
+      } else if (userLang.indexOf('hr') === 0) {
+        messages = messages_hr;
+        console.log('[KanbanViz] Using Croatian translations from NLS file');
       } else {
         messages = messages_en;
         console.log('[KanbanViz] Using English translations from NLS file (default)');
