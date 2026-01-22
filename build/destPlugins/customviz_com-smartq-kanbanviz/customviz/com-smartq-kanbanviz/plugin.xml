@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<obiplugin xmlns="http://plugin.frameworks.tech.bi.oracle" id="com-smartq-kanbanviz" name="com-smartq-kanbanviz" version="1.0.0.1769079731161" optimized="false" optimizable="true" category="customviz" categoryVersion="1.0.0.1769079731161">
+    <resources>
+        <resource type="binary" id="COLOR_CONFIGURATION" path="COLOR_CONFIGURATION.md"/>
+        <resource type="binary" id="kanbanVizIcon" path="kanbanVizIcon.png"/>
+        <resource-folder id="nls" path="nls" optimizable="true">
+            <extensions>
+                <extension name="js" resource-type="script"/>
+            </extensions>
+        </resource-folder>
+        <resource type="script" id="kanbanViz" path="kanbanViz.js"/>
+        <resource type="script" id="colorConfig" path="colorConfig.js"/>
+        <resource type="css" id="kanbanVizstyles" path="kanbanVizstyles.css"/>
+        <resource type="script" id="kanbanVizdatamodelhandler" path="kanbanVizdatamodelhandler.js"/>
+        <resource-folder id=".claude" path=".claude" optimizable="true">
+            <extensions>
+                <extension name="js" resource-type="script"/>
+            </extensions>
+        </resource-folder>
+        <resource type="binary" id="notes" path="notes"/>
+        <resource type="binary" id="NLS_IMPLEMENTATION" path="NLS_IMPLEMENTATION.md"/>
+    </resources>
+    <extensions>
+        <extension id="com.smartq.kanbanViz" point-id="oracle.bi.tech.plugin.visualization" version="1.0.0">
+            <configuration>{"id":"com.smartq.kanbanViz","version":"1.0.0","host":{"script":{"module":"com-smartq-kanbanviz/kanbanViz","method":"createClientComponent"},"vizSettings":{"_version":"1.0.0","viewConfig":{"viz:chart":{"type":"com.smartq.kanbanViz","dataValues":true}}}},"resourceBundle":"com-smartq-kanbanviz/nls/messages","properties":{"displayName":{"key":"KANBANVIZ_DISPLAY_NAME","default":"Kanban Board (by % Complete)"},"shortDisplayName":{"key":"KANBANVIZ_SHORT_DISPLAY_NAME","default":"Kanban Board"},"category":{"key":"KANBANVIZ_CATEGORY","default":"KanbanViz Plugin"},"categoryOrder":500,"icon":"kanbanVizIcon","dataModelHandler":"com.smartq.kanbanViz.visualizationDatamodelHandler","dataModelGovernor":{"dm1":{"rows":10000,"columns":5000}},"isEmbeddable":false,"isMarkingSupported":true}}</configuration>
+        </extension>
+        <extension id="com.smartq.kanbanViz.visualizationDatamodelHandler" point-id="oracle.bi.tech.plugin.visualizationDatamodelHandler" version="1.0.0">
+            <configuration>{"id":"com.smartq.kanbanViz.visualizationDatamodelHandler","version":"1.0.0","module":"com-smartq-kanbanviz/kanbanVizdatamodelhandler","method":"getHandler","config":{"vizPreference":50,"measureLabelConfig":{"supportedEdges":["color","size","tooltip"],"defaultEdge":"row","visibility":"hidden"},"edgeConfig":{"measures":{"contentType":"measures","global":{"minCount":1,"maxCount":1,"priority":10},"ui":{"customName":{"key":"KANBANVIZ_MEASURE","default":"Completion %"}}},"row":{"contentType":"categorical","global":{"priority":1,"minCount":1,"maxCount":4,"preferredMax":4},"ui":{"customName":{"key":"KANBANVIZ_ROW","default":"Task"}},"categorical":{"functionalInfo":["categoricalType"]}},"color":{"contentType":"categorical","global":{"priority":2,"minCount":0,"maxCount":1},"ui":{"customName":{"key":"KANBANVIZ_COLOR","default":"Color"}},"categorical":{"functionalInfo":["inner","row","categoricalType"]}},"tooltip":{"contentType":"categorical","global":{"priority":5,"minCount":0,"maxCount":8},"ui":{"customName":{"key":"KANBANVIZ_TOOLTIP","default":"Tooltip"},"description":"1st column: RED condition flag (Y/D/1/TRUE). 2nd column: YELLOW condition flag (Y/D/1/TRUE). Remaining columns appear in tooltip."},"categorical":{"functionalInfo":["categoricalType"],"edgeLabels":{"supported":true,"properties":[{"id":"displayName","type":"string","label":"Display Name","default":""},{"id":"colorRole","type":"dropdown","label":"Color Role","default":"none","options":[{"value":"none","label":"None (Show in Tooltip)"},{"value":"red","label":"RED Condition"},{"value":"yellow","label":"YELLOW Condition"}]}]}}},"size":"none","glyph":"none"}}}</configuration>
+        </extension>
+    </extensions>
+</obiplugin>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<obiplugin xmlns="http://plugin.frameworks.tech.bi.oracle" id="sample-circlepack" name="sample-circlepack" version="1.0.0.1769079731367" optimized="false" optimizable="true" category="sampleviz" categoryVersion="1.0.0.1769079731367">
+    <resources>
+        <resource type="script" id="circlePackdatamodelhandler" path="circlePackdatamodelhandler.js"/>
+        <resource type="binary" id="circlePackIcon" path="circlePackIcon.png"/>
+        <resource-folder id="nls" path="nls" optimizable="true">
+            <extensions>
+                <extension name="js" resource-type="script"/>
+            </extensions>
+        </resource-folder>
+        <resource type="script" id="circlePack" path="circlePack.js"/>
+        <resource type="css" id="circlePackStyles" path="circlePackStyles.css"/>
+    </resources>
+    <extensions>
+        <extension id="oracle.bi.tech.chart.circlePack" point-id="oracle.bi.tech.plugin.visualization" version="1.0.0">
+            <configuration>{"host":{"script":{"module":"obitech-circlepack/circlePack","method":"createClientComponent"},"vizSettings":{"_version":"1.0.0","viewConfig":{"viz:chart":{"type":"oracle.bi.tech.chart.circlePack","dataValues":true}}}},"resourceBundle":"obitech-circlepack/nls/messages","properties":{"displayName":{"key":"CIRCLEPACK_DISPLAY_NAME","default":"CirclePack Plugin"},"shortDisplayName":{"key":"CIRCLEPACK_SHORT_DISPLAY_NAME","default":"CirclePack Plugin"},"dataModelHandler":"oracle.bi.tech.chart.circlePack.visualizationDatamodelHandler","dataModelGovernor":{"dm1":{"rows":10000,"columns":5000}},"isEmbeddable":false,"isMarkingSupported":false}}</configuration>
+        </extension>
+        <extension id="sample.circlePack.visualization" point-id="oracle.bi.tech.plugin.visualization" version="1.0.0">
+            <configuration>{"host":{"script":{"module":"sample-circlepack/circlePack","method":"createClientComponent"},"vizSettings":{"_version":"1.0.0","viewConfig":{"viz:chart":{"type":"sample.circlePack.visualization","dataValues":true}}}},"resourceBundle":"sample-circlepack/nls/messages","properties":{"displayName":{"key":"CIRCLEPACK_DISPLAY_NAME","default":"Sample CirclePack Plugin"},"shortDisplayName":{"key":"CIRCLEPACK_SHORT_DISPLAY_NAME","default":"Sample CirclePack Plugin"},"category":{"key":"CIRCLEPACK_CATEGORY","default":"Sample Circle Pack"},"categoryOrder":500,"icon":"circlePackIcon","dataModelHandler":"sample.circlePack.visualizationDatamodelHandler","dataModelGovernor":{"dm1":{"rows":10000,"columns":5000}},"isEmbeddable":false,"isMarkingSupported":false}}</configuration>
+        </extension>
+        <extension id="oracle.bi.tech.chart.circlePack.visualizationDatamodelHandler" point-id="oracle.bi.tech.plugin.visualizationDatamodelHandler" version="1.0.0">
+            <configuration>{"module":"obitech-circlepack/circlePackdatamodelhandler","method":"getHandler","config":{"vizPreference":50,"measureLabelConfig":{"supportedEdges":["color","detail","size"],"defaultEdge":"color","visibility":"hidden"},"edgeConfig":{"measures":{"contentType":"measures","global":{"minCount":0,"maxCount":1,"priority":10},"ui":{"customName":{"key":"CIRCLEPACK_CIRCLE_SIZE","default":"Circle Size"}}},"row":{"contentType":"categorical","global":{"priority":1,"preferredMax":1},"ui":{"customName":{"key":"CIRCLEPACK_ROW_LABEL","default":"Circles"}},"categorical":{"functionalInfo":["inner","row","categoricalType"]}},"color":{"contentType":"both","global":{"preferredMin":1,"preferredMax":1,"priority":7},"measures":{"maxCount":1},"categorical":{"functionalInfo":["inner","col","categoricalType"]}},"size":"none","glyph":"none","detail":"none"}}}</configuration>
+        </extension>
+        <extension id="sample.circlePack.visualizationDatamodelHandler" point-id="oracle.bi.tech.plugin.visualizationDatamodelHandler" version="1.0.0">
+            <configuration>{"module":"sample-circlepack/circlePackdatamodelhandler","method":"getHandler","config":{"vizPreference":50,"measureLabelConfig":{"supportedEdges":["color","detail","size"],"defaultEdge":"color","visibility":"hidden"},"edgeConfig":{"measures":{"contentType":"measures","global":{"minCount":0,"maxCount":1,"priority":10},"ui":{"customName":{"key":"CIRCLEPACK_CIRCLE_SIZE","default":"Circle Size"}}},"row":{"contentType":"categorical","global":{"priority":1,"preferredMax":1},"ui":{"customName":{"key":"CIRCLEPACK_ROW_LABEL","default":"Circles"}},"categorical":{"functionalInfo":["inner","row","categoricalType"]}},"color":{"contentType":"both","global":{"preferredMin":1,"preferredMax":1,"priority":7},"measures":{"maxCount":1},"categorical":{"functionalInfo":["inner","col","categoricalType"]}},"size":"none","glyph":"none","detail":"none"}}}</configuration>
+        </extension>
+    </extensions>
+</obiplugin>

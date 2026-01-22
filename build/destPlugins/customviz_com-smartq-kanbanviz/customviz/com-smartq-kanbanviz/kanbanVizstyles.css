@@ -1,0 +1,421 @@
+/* ===== Kanban – responsive, single-row lanes, full height ===== */
+
+/* Board container fills the viz area; no horizontal overflow */
+.kanban-board {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;              /* keep all lanes on one row */
+  align-items: stretch;
+
+  width: 100%;
+  height: 100%;                   /* stretch to available height */
+
+  overflow-x: auto;               /* JS computes exact widths; allow H scroll */
+  overflow-y: hidden;             /* columns handle vertical scrolling */
+
+  padding-left: 6px;              /* symmetric gutters */
+  padding-right: 6px;
+  box-sizing: border-box;
+
+  gap: 10px;                      /* space between lanes (flex gap) */
+  background: transparent;
+}
+
+/* Each Kanban column – single definitive block (remove previous duplicates) */
+.kanban-column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+
+  /* Responsive width – JS may override via inline width */
+  flex: 0 0 auto;                 /* keep on one row, width is explicit */
+  flex-shrink: 1;                 /* allow responsive shrink before scroll */
+  width: var(--lane-width, 220px);
+  min-width: 140px;               /* allows 6 lanes on many laptops */
+  max-width: calc(100% / 6 - 12px);  /* ensure six columns fit without overflow */
+
+  background: #f8f8f8;
+  border: 1px solid #cfcfcf;
+  border-radius: 4px;
+  box-sizing: border-box;
+
+  max-height: 100%;               /* fill board height */
+}
+
+/* Column header */
+.kanban-column-header {
+  flex: 0 0 auto;
+  background: #efefef;
+  border-bottom: 1px solid #ccc;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 16px;
+  text-align: center;
+  padding: 6px 10px;
+  color: #222;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+/* Card list scrolls vertically inside each lane */
+.kanban-card-list {
+  flex: 1 1 auto;
+  min-height: 0;                  /* enables flex children to shrink */
+  overflow-y: auto;               /* vertical scroll per lane */
+  overflow-x: hidden;
+  overscroll-behavior: contain;   /* smoother per-lane scroll */
+  padding: 8px;                   /* slightly tighter to fit 6 lanes */
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+}
+
+/* Footer spacer (optional) */
+.kanban-column-footer {
+  flex: 0 0 auto;
+  padding: 0 8px 8px 8px;
+  box-sizing: border-box;
+}
+
+/* Card */
+.kanban-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid #cfcfcf;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  padding: 10px 10px 8px 10px;    /* a bit tighter */
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  box-sizing: border-box;
+  height: auto;
+}
+
+.kanban-card.selected {
+  outline: 2px solid #1976d2;
+  outline-offset: 0;
+  border-color: #1976d2;
+  background: #eef5ff;
+  box-shadow: 0 0 0 1px rgba(25, 118, 210, 0.35),
+              0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.kanban-card.selected .kanban-card-stripe {
+  filter: brightness(1.1);
+}
+
+/* Conditional coloring for RED flagged cards (1st Tooltip column = Y/D/Yes/1/TRUE) */
+.kanban-card-flagged {
+  background: #ffe5e5;              /* light red background */
+  border-color: #e09393;            /* visible but not aggressive border */
+  box-shadow: 0 0 0 1px rgba(224,147,147,0.35);
+}
+
+/* Slightly intensify stripe when card is flagged red */
+.kanban-card-flagged .kanban-card-stripe {
+  filter: saturate(1.2) brightness(0.95);
+}
+
+/* Conditional coloring for YELLOW flagged cards (2nd Tooltip column = Y/D/Yes/1/TRUE) */
+.kanban-card-flagged-yellow {
+  background: #fff9e5;              /* light yellow background */
+  border-color: #e0d093;            /* visible but not aggressive border */
+  box-shadow: 0 0 0 1px rgba(224,208,147,0.35);
+}
+
+/* Slightly intensify stripe when card is flagged yellow */
+.kanban-card-flagged-yellow .kanban-card-stripe {
+  filter: saturate(1.1) brightness(0.98);
+}
+
+.kanban-card-stripe {
+  width: 5px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+  margin-right: 3px;
+  align-self: stretch;
+  height: auto;
+}
+
+.kanban-card-content {
+  flex: 1 1 auto;
+  font-size: 12px;
+  line-height: 15px;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  row-gap: 2px;
+  box-sizing: border-box;
+}
+
+.kanban-card-left {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  margin-right: 4px;
+}
+
+.kanban-card-mid {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  row-gap: 2px;
+  box-sizing: border-box;
+  transform: scale(0.80);
+  transform-origin: top left;
+}
+
+.kanban-card-right {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  margin-left: 0;
+  font-size: 11px;
+  line-height: 14px;
+  color: #666;
+  white-space: pre-line;
+  text-align: center;
+  padding-left: 0;
+  padding-right: 0;
+  margin-right: 0;
+  width: 100%;
+}
+
+/* Bottom row - subtitle3 (4th column from Rows) */
+.kanban-card-bottom {
+  flex: 0 0 auto;
+  width: 100%;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #e5e5e5;
+  font-size: 10px;
+  line-height: 13px;
+  color: #666;
+  font-weight: 500;
+  text-align: left;
+  word-break: break-word;
+  box-sizing: border-box;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.kanban-card-title {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 15px;
+  color: #1a1a1a;
+  word-break: break-word;
+  margin-bottom: 4px;
+  padding-left: 0;
+  margin-left: 0;
+  text-align: center;
+}
+
+/* Table layout for subtitle row */
+.kanban-card-subtitle-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2px;
+  table-layout: fixed;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.kanban-card-subtitle-table td {
+  padding: 0;
+  vertical-align: top;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Subtitle lines displayed above the task title */
+.kanban-card-subtitle {
+  font-size: 9px;
+  line-height: 12px;
+  font-weight: 500;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0;
+}
+
+/* Left-aligned subtitle (ID) */
+.kanban-card-subtitle-left {
+  text-align: left;
+  width: 25%;
+}
+
+/* Center-aligned subtitle (Percentage) */
+.kanban-card-subtitle-center {
+  text-align: center;
+  width: 35%;
+  font-weight: 600;
+}
+
+/* Right-aligned subtitle (Zaključni datum) */
+.kanban-card-subtitle-right {
+  text-align: right;
+  width: 40%;
+}
+
+.kanban-card-meta-label {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-right: 4px;
+}
+
+.kanban-card-meta-val {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  color: #444;
+  width: 100%;
+  text-align: center;
+}
+
+.kanban-card-meta {
+  font-size: 11px;
+  line-height: 14px;
+  color: #555;
+  word-break: break-word;
+}
+
+/* Header above the board (debug/info) */
+.kanban-header {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  row-gap: 8px;
+  column-gap: 20px;
+
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  color: #444;
+
+  padding: 6px 10px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.kanban-header-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 12px;
+  row-gap: 4px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.kanban-header-title {
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 16px;
+  color: #222;
+  white-space: nowrap;
+}
+
+.kanban-header-meta {
+  font-size: 12px;
+  line-height: 16px;
+  color: #555;
+}
+
+/* Legend for category colors */
+.kanban-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.kanban-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 14px;
+  color: #333;
+}
+
+.kanban-legend-color {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+.kanban-legend-label {
+  white-space: nowrap;
+}
+
+/* Kanban Viz: custom tooltip bubble */
+.kanban-tooltip {
+  position: fixed;
+  z-index: 99999;
+  max-width: 380px;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #111;
+  pointer-events: none;          /* don't block hover */
+  white-space: normal;           /* allow normal space wrapping */
+  display: none;
+  transition: opacity 0.15s ease-out;
+  opacity: 0;
+  text-align: left;              /* LEFT ALIGN - this is the key fix */
+}
+
+.kanban-tooltip.visible {
+  display: block;
+  opacity: 1;
+}
+
+.kanban-tooltip .kt-line {
+  display: block;
+  margin: 2px 0;
+  text-align: left;              /* LEFT ALIGN each line */
+}
+
+.kanban-tooltip .kt-k {
+  font-weight: 600;
+  margin-right: 6px;
+  display: inline;               /* Keep label and value on same line */
+}
+
+.kanban-tooltip .kt-v {
+  word-break: break-word;
+  display: inline;               /* Keep label and value on same line */
+}

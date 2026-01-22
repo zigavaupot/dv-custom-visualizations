@@ -1,0 +1,109 @@
+<file name=0 path=/Users/zigavaupot/Documents/dv-custom-plugins/src/customviz/com-smartq-kanbanviz/extensions/oracle.bi.tech.plugin.visualization/com.smartq.kanbanViz.json>{
+  "id": "com.smartq.kanbanViz",
+  "version": "1.0.0",
+  "host": {
+    "script": {
+      "module": "com-smartq-kanbanviz/kanbanViz",
+      "method": "createClientComponent"
+    },
+    "vizSettings": {
+      "_version": "1.0.0",
+      "viewConfig": {
+        "viz:chart": {
+          "type": "com.smartq.kanbanViz",
+          "dataValues": true
+        }
+      }
+    }
+  },
+  "resourceBundle": "com-smartq-kanbanviz/nls/messages",
+  "properties": {
+    "displayName": {
+      "key": "KANBANVIZ_DISPLAY_NAME",
+      "default": "Kanban Board (by % Complete)"
+    },
+    "shortDisplayName": {
+      "key": "KANBANVIZ_SHORT_DISPLAY_NAME",
+      "default": "Kanban Board"
+    },
+    "category": {
+      "key": "KANBANVIZ_CATEGORY",
+      "default": "KanbanViz Plugin"
+    },
+    "categoryOrder": 500,
+    "icon": "kanbanVizIcon",
+
+    "dataModelHandler": "com.smartq.kanbanViz.visualizationDatamodelHandler",
+
+    "dataModelGovernor": {
+      "dm1": { "rows": 10000, "columns": 5000 }
+    },
+
+    "isEmbeddable": false,
+    "isMarkingSupported": true
+  }
+}</file>
+<file name=0 path=/Users/zigavaupot/Documents/dv-custom-plugins/src/customviz/com-smartq-kanbanviz/extensions/oracle.bi.tech.plugin.visualizationDatamodelHandler/com.smartq.kanbanViz.visualizationDatamodelHandler.json>{
+  "id": "com.smartq.kanbanViz.visualizationDatamodelHandler",
+  "version": "1.0.1",
+  "config": {
+    "edgeConfig": {
+      "color": {
+        "contentType": "categorical",
+        "global": {
+          "priority": 2,
+          "minCount": 0,
+          "maxCount": 1
+        },
+        "ui": {
+          "customName": {
+            "key": "KANBANVIZ_COLOR",
+            "default": "Color"
+          }
+        },
+        "categorical": {
+          "functionalInfo": ["categoricalType"]
+        }
+      },
+      "conditionColor": {
+        "contentType": "categorical",
+        "global": {
+          "priority": 3,
+          "minCount": 0,
+          "maxCount": 1
+        },
+        "ui": {
+          "customName": {
+            "key": "KANBANVIZ_CONDITION_COLOR",
+            "default": "Color (Condition)"
+          }
+        },
+        "categorical": {
+          "functionalInfo": ["categoricalType"]
+        }
+      },
+      "tooltip": {
+        "contentType": "text",
+        "global": {
+          "priority": 4,
+          "minCount": 0,
+          "maxCount": 1
+        },
+        "ui": {
+          "customName": {
+            "key": "KANBANVIZ_TOOLTIP",
+            "default": "Tooltip"
+          }
+        }
+      }
+    }
+  }
+}</file>
+<file name=0 path=/Users/zigavaupot/Documents/dv-custom-plugins/src/customviz/com-smartq-kanbanviz/nls/root/messages.js>define({
+  "KANBANVIZ_DISPLAY_NAME": "Kanban Board (by % Complete)",
+  "KANBANVIZ_SHORT_DISPLAY_NAME": "Kanban Board",
+  "KANBANVIZ_CATEGORY": "KanbanViz Plugin",
+  "KANBANVIZ_COLOR": "Color",
+  "KANBANVIZ_CONDITION_COLOR": "Color (Condition)",
+  "KANBANVIZ_TOOLTIP": "Tooltip"
+});</file>

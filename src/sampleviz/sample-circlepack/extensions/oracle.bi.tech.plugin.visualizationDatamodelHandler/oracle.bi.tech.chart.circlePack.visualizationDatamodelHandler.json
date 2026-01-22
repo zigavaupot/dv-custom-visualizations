@@ -1,0 +1,61 @@
+{
+  "module" : "obitech-circlepack/circlePackdatamodelhandler",
+  "method" : "getHandler",
+  "config" : {
+    "vizPreference" : 50,
+    "measureLabelConfig" : {
+      "supportedEdges" : [ "color", "detail", "size" ],
+      "defaultEdge" : "color",
+      "visibility" : "hidden"
+    },
+    "edgeConfig" : {
+      "measures" : {
+        "contentType" : "measures",
+        "global" : {
+          "minCount" : 0,
+          "maxCount" : 1,
+          "priority" : 10
+        },
+        "ui" : {
+          "customName" : {
+            "key" : "CIRCLEPACK_CIRCLE_SIZE",
+            "default" : "Circle Size"
+          }
+        }
+      },
+      "row" : {
+        "contentType" : "categorical",
+        "global" : {
+          "priority" : 1,
+          "preferredMax" : 1
+        },
+        "ui" : {
+          "customName" : {
+            "key" : "CIRCLEPACK_ROW_LABEL",
+            "default" : "Circles"
+          }
+        },
+        "categorical" : {
+          "functionalInfo" : [ "inner", "row", "categoricalType" ]
+        }
+      },
+      "color" : {
+        "contentType" : "both",
+        "global" : {
+          "preferredMin" : 1,
+          "preferredMax" : 1,
+          "priority" : 7
+        },
+        "measures" : {
+          "maxCount" : 1
+        },
+        "categorical" : {
+          "functionalInfo" : [ "inner", "col", "categoricalType" ]
+        }
+      },
+      "size" : "none",
+      "glyph" : "none",
+      "detail" : "none"
+    }
+  }
+}

@@ -1,0 +1,5 @@
+cd /Users/zigavaupot/Documents/dv-custom-plugins
+
+./gradlew build   
+
+./gradlew run     

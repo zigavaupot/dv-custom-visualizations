@@ -1,0 +1,91 @@
+{
+  "id": "com.smartq.calendarViz.visualizationDatamodelHandler",
+  "version": "1.0.0",
+  "module": "com-smartq-calendarviz/calendarVizdatamodelhandler",
+  "method": "getHandler",
+  "config": {
+    "vizPreference": 50,
+
+    "measureLabelConfig": {
+      "supportedEdges": ["color", "size", "tooltip"],
+      "defaultEdge": "row",
+      "visibility": "hidden"
+    },
+
+    "edgeConfig": {
+      "row": {
+        "contentType": "categorical",
+        "global": {
+          "priority": 1,
+          "minCount": 3,
+          "maxCount": 3,
+          "preferredMax": 3
+        },
+        "ui": {
+          "customName": {
+            "key": "CALENDARVIZ_ROW",
+            "default": "Rows"
+          },
+          "description": "1st: ID, 2nd: Task name, 3rd: Date (Rok izvedbe)"
+        },
+        "categorical": {
+          "functionalInfo": ["categoricalType"]
+        }
+      },
+      "color": {
+        "contentType": "categorical",
+        "global": {
+          "priority": 3,
+          "minCount": 0,
+          "maxCount": 1
+        },
+        "ui": {
+          "customName": {
+            "key": "CALENDARVIZ_COLOR",
+            "default": "Color Category"
+          },
+          "description": "Category for color-coding tasks"
+        },
+        "categorical": {
+          "functionalInfo": ["inner", "row", "categoricalType"]
+        }
+      },
+      "tooltip": {
+        "contentType": "categorical",
+        "global": {
+          "priority": 5,
+          "minCount": 0,
+          "maxCount": 5
+        },
+        "ui": {
+          "customName": {
+            "key": "CALENDARVIZ_TOOLTIP",
+            "default": "Additional Info"
+          },
+          "description": "Additional information to show in task tooltips"
+        },
+        "categorical": {
+          "functionalInfo": ["categoricalType"]
+        }
+      },
+      "measures": {
+        "contentType": "measures",
+        "global": {
+          "minCount": 0,
+          "maxCount": 1,
+          "priority": 10
+        },
+        "ui": {
+          "customName": {
+            "key": "CALENDARVIZ_MEASURES",
+            "default": "Measures"
+          },
+          "description": "Optional numeric values"
+        }
+      },
+
+      "size": "none",
+      "glyph": "none"
+    }
+  }
+}

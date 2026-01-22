@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<obiplugin xmlns="http://plugin.frameworks.tech.bi.oracle" id="com-smartq-calendarviz" name="com-smartq-calendarviz" version="1.0.0.1769079730900" optimized="false" optimizable="true" category="customviz" categoryVersion="1.0.0.1769079730900">
+    <resources>
+        <resource type="binary" id="COLOR_CONFIGURATION" path="COLOR_CONFIGURATION.md"/>
+        <resource type="script" id="calendarViz" path="calendarViz.js"/>
+        <resource type="binary" id="CHANGELOG" path="CHANGELOG.md"/>
+        <resource-folder id="nls" path="nls" optimizable="true">
+            <extensions>
+                <extension name="js" resource-type="script"/>
+            </extensions>
+        </resource-folder>
+        <resource type="binary" id="TROUBLESHOOTING" path="TROUBLESHOOTING.md"/>
+        <resource type="css" id="calendarVizstyles" path="calendarVizstyles.css"/>
+        <resource type="script" id="colorConfig" path="colorConfig.js"/>
+        <resource type="binary" id="calendarVizIcon" path="calendarVizIcon.svg"/>
+        <resource type="binary" id="README" path="README.md"/>
+        <resource type="binary" id="NLS_IMPLEMENTATION" path="NLS_IMPLEMENTATION.md"/>
+        <resource type="script" id="calendarVizdatamodelhandler" path="calendarVizdatamodelhandler.js"/>
+        <resource type="binary" id="QUICK_START" path="QUICK_START.md"/>
+    </resources>
+    <extensions>
+        <extension id="com.smartq.calendarViz" point-id="oracle.bi.tech.plugin.visualization" version="1.0.0">
+            <configuration>{"id":"com.smartq.calendarViz","version":"1.0.0","host":{"script":{"module":"com-smartq-calendarviz/calendarViz","method":"createClientComponent"}},"resourceBundle":"com-smartq-calendarviz/nls/messages","properties":{"displayName":{"key":"CALENDARVIZ_DISPLAY_NAME"},"shortDisplayName":{"key":"CALENDARVIZ_SHORT_DISPLAY_NAME"},"category":{"key":"CALENDARVIZ_CATEGORY"},"categoryOrder":500,"icon":"calendarVizIcon","dataModelHandler":"com.smartq.calendarViz.visualizationDatamodelHandler","dataModelGovernor":{"dm1":{"rows":10000,"columns":5000}},"isEmbeddable":false,"isMarkingSupported":true}}</configuration>
+        </extension>
+        <extension id="com.smartq.calendarViz.visualizationDatamodelHandler" point-id="oracle.bi.tech.plugin.visualizationDatamodelHandler" version="1.0.0">
+            <configuration>{"id":"com.smartq.calendarViz.visualizationDatamodelHandler","version":"1.0.0","module":"com-smartq-calendarviz/calendarVizdatamodelhandler","method":"getHandler","config":{"vizPreference":50,"measureLabelConfig":{"supportedEdges":["color","size","tooltip"],"defaultEdge":"row","visibility":"hidden"},"edgeConfig":{"row":{"contentType":"categorical","global":{"priority":1,"minCount":3,"maxCount":3,"preferredMax":3},"ui":{"customName":{"key":"CALENDARVIZ_ROW","default":"Rows"},"description":"1st: ID, 2nd: Task name, 3rd: Date (Rok izvedbe)"},"categorical":{"functionalInfo":["categoricalType"]}},"color":{"contentType":"categorical","global":{"priority":3,"minCount":0,"maxCount":1},"ui":{"customName":{"key":"CALENDARVIZ_COLOR","default":"Color Category"},"description":"Category for color-coding tasks"},"categorical":{"functionalInfo":["inner","row","categoricalType"]}},"tooltip":{"contentType":"categorical","global":{"priority":5,"minCount":0,"maxCount":5},"ui":{"customName":{"key":"CALENDARVIZ_TOOLTIP","default":"Additional Info"},"description":"Additional information to show in task tooltips"},"categorical":{"functionalInfo":["categoricalType"]}},"measures":{"contentType":"measures","global":{"minCount":0,"maxCount":1,"priority":10},"ui":{"customName":{"key":"CALENDARVIZ_MEASURES","default":"Measures"},"description":"Optional numeric values"}},"size":"none","glyph":"none"}}}</configuration>
+        </extension>
+    </extensions>
+</obiplugin>

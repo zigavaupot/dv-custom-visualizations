@@ -1,0 +1,33 @@
+{
+  "id": "com.smartq.calendarViz",
+  "version": "1.0.0",
+  "host": {
+    "script": {
+      "module": "com-smartq-calendarviz/calendarViz",
+      "method": "createClientComponent"
+    }
+  },
+  "resourceBundle": "com-smartq-calendarviz/nls/messages",
+  "properties": {
+    "displayName": {
+      "key": "CALENDARVIZ_DISPLAY_NAME"
+    },
+    "shortDisplayName": {
+      "key": "CALENDARVIZ_SHORT_DISPLAY_NAME"
+    },
+    "category": {
+      "key": "CALENDARVIZ_CATEGORY"
+    },
+    "categoryOrder": 500,
+    "icon": "calendarVizIcon",
+    "dataModelHandler": "com.smartq.calendarViz.visualizationDatamodelHandler",
+    "dataModelGovernor": {
+      "dm1": {
+        "rows": 10000,
+        "columns": 5000
+      }
+    },
+    "isEmbeddable": false,
+    "isMarkingSupported": true
+  }
+}

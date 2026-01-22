@@ -1,0 +1,37 @@
+{
+  "host" : {
+    "script" : {
+      "module" : "obitech-circlepack/circlePack",
+      "method" : "createClientComponent"
+    },
+    "vizSettings" : {
+      "_version" : "1.0.0",
+      "viewConfig" : {
+        "viz:chart" : {
+          "type" : "oracle.bi.tech.chart.circlePack",
+          "dataValues" : true
+        }
+      }
+    }
+  },
+  "resourceBundle" : "obitech-circlepack/nls/messages",
+  "properties" : {
+    "displayName" : {
+      "key" : "CIRCLEPACK_DISPLAY_NAME",
+      "default" : "CirclePack Plugin"
+    },
+    "shortDisplayName" : {
+      "key" : "CIRCLEPACK_SHORT_DISPLAY_NAME",
+      "default" : "CirclePack Plugin"
+    },
+    "dataModelHandler" : "oracle.bi.tech.chart.circlePack.visualizationDatamodelHandler",
+    "dataModelGovernor" : {
+      "dm1" : {
+        "rows" : 10000,
+        "columns" : 5000
+      }
+    },
+    "isEmbeddable" : false,
+    "isMarkingSupported" : false
+  }
+}

@@ -1,0 +1,44 @@
+.circle_pack_node {
+   cursor: pointer;
+}
+
+.circle_pack_node--leaf.circle_pack_selected {
+  stroke: black;
+  stroke-width: 2;
+}
+
+.circle_pack_brush .extent {
+  fill-opacity: .1;
+  stroke: #fff;
+  shape-rendering: crispEdges;
+}
+
+.circle_packRootContainer {
+   display: flex;
+   justify-content: center;
+}
+
+.circle_packVizContainer {
+   align-self: center;
+   
+   -moz-user-select: none;
+   -khtml-user-select: none;
+   -webkit-user-select: none;
+   -ms-user-select: none;
+   user-select: none;
+}
+
+.circle_pack_node:hover {
+   stroke: #000;
+   stroke-width: 1.5px;
+}
+
+.circle_pack_node--leaf {
+   fill: white;
+}
+
+.circle_pack_label {
+   font: 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+   text-anchor: middle;
+   text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+}

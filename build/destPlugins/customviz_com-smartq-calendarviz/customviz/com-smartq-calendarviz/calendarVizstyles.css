@@ -1,0 +1,673 @@
+/**
+ * Calendar Visualization Styles
+ * Oracle Analytics Cloud Custom Visualization
+ */
+
+/* Main Calendar Container */
+.calendar-container {
+    font-family: "Oracle Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    color: #333;
+    background-color: #ffffff;
+    padding: 20px;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: auto;
+}
+
+/* Calendar Header (Month/Year with navigation) */
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 12px;
+    background-color: #f5f5f5;
+    border-radius: 6px;
+}
+
+/* Navigation buttons (prev/next month) */
+.calendar-nav-btn {
+    background-color: #0572ce;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-nav-btn:hover {
+    background-color: #0461b0;
+    transform: scale(1.05);
+}
+
+.calendar-nav-btn:active {
+    background-color: #034c8c;
+    transform: scale(0.98);
+}
+
+.calendar-nav-btn-small {
+    padding: 4px 8px;
+    font-size: 12px;
+    min-width: 28px;
+    height: 28px;
+}
+
+.calendar-nav-arrow {
+    font-weight: bold;
+}
+
+/* Month and Year selectors */
+.calendar-month-select,
+.calendar-year-select {
+    padding: 5px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #312D2A;
+    background-color: white;
+    border: 2px solid #d0d0d0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.calendar-month-select {
+    min-width: 110px;
+}
+
+.calendar-year-select {
+    min-width: 70px;
+}
+
+.calendar-month-select:hover,
+.calendar-year-select:hover {
+    border-color: #0572ce;
+}
+
+.calendar-month-select:focus,
+.calendar-year-select:focus {
+    outline: none;
+    border-color: #0572ce;
+    box-shadow: 0 0 0 3px rgba(5, 114, 206, 0.1);
+}
+
+/* Today button */
+.calendar-today-btn {
+    background-color: #f7f7f7;
+    color: #312D2A;
+    border: 2px solid #d0d0d0;
+    border-radius: 4px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.calendar-today-btn:hover {
+    background-color: #e8e8e8;
+    border-color: #0572ce;
+    color: #0572ce;
+}
+
+.calendar-today-btn:active {
+    background-color: #d8d8d8;
+}
+
+/* Summary Bar */
+.calendar-summary-bar {
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    border-top: none;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #312D2A;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.calendar-summary-stats {
+    flex: 0 0 auto;
+}
+
+.calendar-summary-legend {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.calendar-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.calendar-legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.calendar-legend-label {
+    font-size: 11px;
+    color: #666;
+}
+
+/* Day Headers (PON, TOR, SRE, etc.) */
+.calendar-day-headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: #dddddd;
+    border: 1px solid #dddddd;
+    margin-bottom: 1px;
+}
+
+.calendar-day-header {
+    background-color: #f5f5f5;
+    padding: 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: #dddddd;
+    border: 1px solid #dddddd;
+    min-height: 500px;
+}
+
+/* Individual Day Cell */
+.calendar-day {
+    background-color: #ffffff;
+    min-height: 100px;
+    padding: 8px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-day-empty {
+    background-color: #fafafa;
+}
+
+.calendar-day-weekend {
+    background-color: #fafafa;
+}
+
+.calendar-day-today {
+    background-color: #e3f2fd;
+}
+
+.calendar-day-number {
+    font-weight: 600;
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 6px;
+    flex: 0 0 auto;
+}
+
+.calendar-day-today .calendar-day-number {
+    color: #0572ce;
+    font-weight: 700;
+}
+
+/* Tasks Container within Day */
+.calendar-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 220px;
+    min-height: 0;
+}
+
+/* Individual Task Card (matching kanbanViz) */
+.calendar-task {
+    position: relative;
+    background-color: #ffffff;
+    border: 1px solid #cfcfcf;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    padding: 10px 10px 8px 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+
+.calendar-task:hover {
+    border-color: #0572ce;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.calendar-task-selected {
+    outline: 2px solid #1976d2;
+    outline-offset: 0;
+    border-color: #1976d2;
+    background-color: #eef5ff;
+    box-shadow: 0 0 0 1px rgba(25, 118, 210, 0.35), 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.calendar-task-selected .calendar-task-stripe {
+    filter: brightness(1.1);
+}
+
+/* Task Card Content Container */
+.calendar-task-content {
+    flex: 1 1 auto;
+    font-size: 12px;
+    line-height: 15px;
+    color: #222;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    row-gap: 2px;
+    box-sizing: border-box;
+}
+
+/* Simplified Task Card Layout: (1st column) 2nd Column */
+.calendar-task-simple {
+    font-size: 11px;
+    line-height: 16px;
+    color: #333;
+    word-break: break-word;
+    text-align: left;
+    width: 100%;
+}
+
+.calendar-task-simple strong {
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.calendar-task-left {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* Task Title (matching kanbanViz - centered) */
+.calendar-task-title {
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 15px;
+    color: #1a1a1a;
+    word-break: break-word;
+    margin-bottom: 2px;
+    text-align: center;
+}
+
+/* Middle row (Nosilec / 4th column from Rows, below title) */
+.calendar-task-middle {
+    font-size: 10px;
+    line-height: 13px;
+    color: #666;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 2px;
+    word-break: break-word;
+}
+
+/* Table layout for subtitle row */
+.calendar-task-subtitle-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2px;
+    table-layout: fixed;
+}
+
+.calendar-task-subtitle-table td {
+    padding: 0;
+    vertical-align: top;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Task Subtitle (matching kanbanViz) */
+.calendar-task-subtitle {
+    font-size: 9px;
+    line-height: 12px;
+    color: #666;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-task-subtitle-left {
+    text-align: left;
+    padding-right: 2px;
+    width: 35%;
+}
+
+.calendar-task-subtitle-right {
+    text-align: right;
+    padding-left: 2px;
+    width: 35%;
+}
+
+.calendar-task-subtitle-center {
+    text-align: center;
+    padding-left: 4px;
+    padding-right: 4px;
+    width: 30%;
+}
+
+/* Bottom row (matching kanbanViz subtitle3 / status) */
+.calendar-task-bottom {
+    flex: 0 0 auto;
+    width: 100%;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid #e5e5e5;
+    font-size: 10px;
+    line-height: 13px;
+    color: #666;
+    font-weight: 500;
+    text-align: left;
+    word-break: break-word;
+    box-sizing: border-box;
+}
+
+/* Flagged Task Cards - Red (deadline passed) */
+.calendar-task-flagged-red {
+    background-color: #ffe5e5 !important;
+    border-color: #e09393 !important;
+}
+
+.calendar-task-flagged-red:hover {
+    border-color: #d07070 !important;
+    box-shadow: 0 2px 4px rgba(224, 147, 147, 0.3);
+}
+
+/* Flagged Task Cards - Yellow (30 day warning) */
+.calendar-task-flagged-yellow {
+    background-color: #fff9e5 !important;
+    border-color: #e0d093 !important;
+}
+
+.calendar-task-flagged-yellow:hover {
+    border-color: #d0c070 !important;
+    box-shadow: 0 2px 4px rgba(224, 208, 147, 0.3);
+}
+
+/* Selected Task Cards (for "Use as Filter") */
+.calendar-task.selected {
+    border: 2px solid #0572ce !important;
+    box-shadow: 0 0 0 2px rgba(5, 114, 206, 0.2) !important;
+    background-color: #f0f7ff !important;
+}
+
+.calendar-task.selected:hover {
+    border-color: #0572ce !important;
+    box-shadow: 0 0 0 2px rgba(5, 114, 206, 0.3) !important;
+}
+
+/* Color Stripe (left border - matching kanbanViz) */
+.calendar-task-stripe {
+    width: 5px;
+    border-radius: 2px;
+    flex: 0 0 auto;
+    margin-right: 3px;
+    align-self: stretch;
+    height: auto;
+}
+
+/* Different colors based on category */
+.calendar-task-stripe[data-color="High"] {
+    background-color: #d32f2f;
+}
+
+.calendar-task-stripe[data-color="Medium"] {
+    background-color: #f57c00;
+}
+
+.calendar-task-stripe[data-color="Low"] {
+    background-color: #388e3c;
+}
+
+.calendar-task-stripe[data-color="Red"] {
+    background-color: #d32f2f;
+}
+
+.calendar-task-stripe[data-color="Yellow"] {
+    background-color: #f9a825;
+}
+
+.calendar-task-stripe[data-color="Green"] {
+    background-color: #388e3c;
+}
+
+.calendar-task-stripe[data-color="Blue"] {
+    background-color: #1976d2;
+}
+
+/* Tooltip (matching kanbanViz style) */
+.calendar-tooltip {
+    position: fixed;
+    z-index: 99999;
+    max-width: 380px;
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 16px;
+    color: #111;
+    pointer-events: none;
+    white-space: normal;
+    display: none;
+    transition: opacity 0.15s ease-out;
+    opacity: 0;
+    text-align: left;
+}
+
+.calendar-tooltip.visible {
+    display: block;
+    opacity: 1;
+}
+
+.calendar-tooltip .ct-line {
+    display: block;
+    margin: 2px 0;
+    text-align: left;
+}
+
+.calendar-tooltip .ct-k {
+    font-weight: 600;
+    margin-right: 6px;
+    display: inline;
+}
+
+.calendar-tooltip .ct-v {
+    word-break: break-word;
+    display: inline;
+}
+
+/* Error State */
+.calendar-error {
+    padding: 20px;
+    background-color: #ffebee;
+    border: 1px solid #ef5350;
+    border-radius: 4px;
+    color: #c62828;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .calendar-container {
+        padding: 10px;
+    }
+
+    .calendar-day {
+        min-height: 80px;
+        padding: 6px;
+    }
+
+    .calendar-task-title {
+        font-size: 11px;
+    }
+
+    .calendar-task-subtitle {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-container {
+        padding: 5px;
+    }
+
+    .calendar-month-title {
+        font-size: 18px;
+    }
+
+    .calendar-day {
+        min-height: 60px;
+        padding: 4px;
+    }
+
+    .calendar-day-number {
+        font-size: 12px;
+    }
+
+    .calendar-task {
+        padding: 4px 6px;
+    }
+
+    .calendar-task-title {
+        font-size: 10px;
+    }
+
+    .calendar-task-subtitle {
+        display: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .calendar-nav-btn {
+        display: none;
+    }
+
+    .calendar-container {
+        overflow: visible;
+    }
+
+    .calendar-day {
+        page-break-inside: avoid;
+    }
+
+    .calendar-tooltip {
+        display: none !important;
+    }
+}
+
+/* Scrollbar Styling (for modern browsers) */
+.calendar-container::-webkit-scrollbar,
+.calendar-day::-webkit-scrollbar,
+.calendar-tasks::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.calendar-container::-webkit-scrollbar-track,
+.calendar-day::-webkit-scrollbar-track,
+.calendar-tasks::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.calendar-container::-webkit-scrollbar-thumb,
+.calendar-day::-webkit-scrollbar-thumb,
+.calendar-tasks::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 3px;
+}
+
+.calendar-container::-webkit-scrollbar-thumb:hover,
+.calendar-day::-webkit-scrollbar-thumb:hover,
+.calendar-tasks::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}
+
+/* Animation for task hover */
+@keyframes taskPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.calendar-task:active {
+    animation: taskPulse 0.3s ease-in-out;
+}
+
+/* Loading State */
+.calendar-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 16px;
+    color: #666;
+}
+
+.calendar-loading::after {
+    content: "Loading...";
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0%, 20% {
+        content: "Loading.";
+    }
+    40% {
+        content: "Loading..";
+    }
+    60%, 100% {
+        content: "Loading...";
+    }
+}
