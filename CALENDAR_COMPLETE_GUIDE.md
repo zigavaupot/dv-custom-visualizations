@@ -14,7 +14,7 @@
 ## Overview
 
 The Calendar visualization displays tasks in a monthly calendar grid format. Tasks are positioned on their completion date (Rok izvedbe). It supports:
-- **Multi-language** translations (English, Slovenian, French, German, Spanish, Croatian)
+- **Multi-language** translations (English, Slovenian, French, German, Spanish, Croatian, Italian)
 - **Configurable UI text** including day names, month names, and labels
 - **External color configuration** for easy customization
 - **Automatic language detection** based on browser settings
@@ -68,7 +68,7 @@ All user-facing text is stored in external NLS (National Language Support) files
 
 ### Language Files Location
 
-The visualization supports 6 languages:
+The visualization supports 7 languages:
 
 | Language | Code | File Path |
 |----------|------|-----------|
@@ -78,6 +78,7 @@ The visualization supports 6 languages:
 | German | de | `nls/de/messages.js` |
 | Spanish | es | `nls/es/messages.js` |
 | Croatian | hr | `nls/hr/messages.js` |
+| Italian | it | `nls/it/messages.js` |
 
 **Language registration:**
 ```
@@ -233,6 +234,7 @@ The visualization automatically detects browser language and loads the appropria
 - **German** (de, de-DE, etc.) → Uses `nls/de/messages.js`
 - **Spanish** (es, es-ES, etc.) → Uses `nls/es/messages.js`
 - **Croatian** (hr, hr-HR, etc.) → Uses `nls/hr/messages.js`
+- **Italian** (it, it-IT, etc.) → Uses `nls/it/messages.js`
 - **Any other language** → Uses `nls/root/messages.js` (English - default)
 
 **To test different languages:**

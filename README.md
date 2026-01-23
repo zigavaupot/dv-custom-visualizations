@@ -55,7 +55,7 @@ Both visualizations will appear in the visualization gallery after deployment.
 
 ### Both Visualizations
 
-✅ **Multi-language support** (English and Slovenian)
+✅ **Multi-language support** (English, Slovenian, German, Spanish, French, Croatian, and Italian)
 ✅ **Automatic language detection** based on browser settings
 ✅ **External color configuration** - No code changes needed
 ✅ **Category-based coloring** with alphabetical mapping
@@ -138,11 +138,21 @@ dv-custom-plugins/
 
 - **English (en)** - Default language
 - **Slovenian (sl)** - Full translation
+- **German (de)** - Full translation
+- **Spanish (es)** - Full translation
+- **French (fr)** - Full translation
+- **Croatian (hr)** - Full translation
+- **Italian (it)** - Full translation
 
 ### Language Detection
 
 The visualizations automatically detect browser language:
 - Slovenian browser (sl, sl-SI) → Slovenian translations
+- German browser (de, de-DE, de-AT, etc.) → German translations
+- Spanish browser (es, es-ES, es-MX, etc.) → Spanish translations
+- French browser (fr, fr-FR, fr-CA, etc.) → French translations
+- Croatian browser (hr, hr-HR) → Croatian translations
+- Italian browser (it, it-IT) → Italian translations
 - Any other language → English translations (default)
 
 ### Adding New Languages
@@ -267,18 +277,28 @@ Both visualizations log helpful debug information to browser console. Open Devel
 **Kanban:**
 - English: `src/customviz/com-smartq-kanbanviz/nls/root/messages.js`
 - Slovenian: `src/customviz/com-smartq-kanbanviz/nls/sl/messages.js`
+- German: `src/customviz/com-smartq-kanbanviz/nls/de/messages.js`
+- Spanish: `src/customviz/com-smartq-kanbanviz/nls/es/messages.js`
+- French: `src/customviz/com-smartq-kanbanviz/nls/fr/messages.js`
+- Croatian: `src/customviz/com-smartq-kanbanviz/nls/hr/messages.js`
+- Italian: `src/customviz/com-smartq-kanbanviz/nls/it/messages.js`
 - Colors: `src/customviz/com-smartq-kanbanviz/colorConfig.js`
 
 **Calendar:**
 - English: `src/customviz/com-smartq-calendarviz/nls/root/messages.js`
 - Slovenian: `src/customviz/com-smartq-calendarviz/nls/sl/messages.js`
+- German: `src/customviz/com-smartq-calendarviz/nls/de/messages.js`
+- Spanish: `src/customviz/com-smartq-calendarviz/nls/es/messages.js`
+- French: `src/customviz/com-smartq-calendarviz/nls/fr/messages.js`
+- Croatian: `src/customviz/com-smartq-calendarviz/nls/hr/messages.js`
+- Italian: `src/customviz/com-smartq-calendarviz/nls/it/messages.js`
 - Colors: `src/customviz/com-smartq-calendarviz/colorConfig.js`
 
 ## Version History
 
 ### Version 1.0 (January 2026)
 - Initial implementation
-- Multi-language support (English, Slovenian)
+- Multi-language support (English, Slovenian, German, Spanish, French, Croatian, Italian)
 - External color configuration
 - Configurable lane headers (Kanban)
 - Configurable day/month names (Calendar)

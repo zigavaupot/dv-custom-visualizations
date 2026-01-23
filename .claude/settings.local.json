@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew clean build:*)",
+      "Bash(unzip:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

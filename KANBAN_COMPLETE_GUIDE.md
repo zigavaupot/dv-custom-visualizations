@@ -15,7 +15,7 @@
 ## Overview
 
 The Kanban visualization displays tasks in columns (lanes) based on their completion percentage. It supports:
-- **Multi-language** translations (English, Slovenian, French, German, Spanish, Croatian)
+- **Multi-language** translations (English, Slovenian, French, German, Spanish, Croatian, Italian)
 - **Configurable lane headers** with separate logic and display values
 - **External color configuration** for easy customization
 - **Automatic language detection** based on browser settings
@@ -62,7 +62,7 @@ All user-facing text is stored in external NLS (National Language Support) files
 
 ### Language Files Location
 
-The visualization supports 6 languages:
+The visualization supports 7 languages:
 
 | Language | Code | File Path |
 |----------|------|-----------|
@@ -72,6 +72,7 @@ The visualization supports 6 languages:
 | German | de | `nls/de/messages.js` |
 | Spanish | es | `nls/es/messages.js` |
 | Croatian | hr | `nls/hr/messages.js` |
+| Italian | it | `nls/it/messages.js` |
 
 **Language registration:**
 ```
@@ -168,6 +169,7 @@ Upload `build/distributions/customviz_com-smartq-kanbanviz.zip` to Oracle Analyt
 The visualization automatically detects browser language and loads the appropriate translations:
 
 - **Slovenian** (sl, sl-SI, etc.) → Uses `nls/sl/messages.js`
+- **Italian** (it, it-IT, etc.) → Uses `nls/it/messages.js`
 - **French** (fr, fr-FR, etc.) → Uses `nls/fr/messages.js`
 - **German** (de, de-DE, etc.) → Uses `nls/de/messages.js`
 - **Spanish** (es, es-ES, etc.) → Uses `nls/es/messages.js`

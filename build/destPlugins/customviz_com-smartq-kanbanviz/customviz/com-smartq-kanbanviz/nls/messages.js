@@ -4,5 +4,6 @@ define({
   "fr": true,  // French
   "de": true,  // German
   "es": true,  // Spanish
-  "hr": true   // Croatian
+  "hr": true,  // Croatian
+  "it": true   // Italian
 });
