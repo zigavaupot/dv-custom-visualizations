@@ -5,6 +5,18 @@
     "script": {
       "module": "com-smartq-calendarviz/calendarViz",
       "method": "createClientComponent"
+    },
+    "vizSettings": {
+      "_version": "1.0.0",
+      "viewConfig": {
+        "viz:chart": {
+          "type": "com.smartq.calendarViz",
+          "dataValues": true,
+          "calendarFormatting": {
+            "valueFormat": "percent"
+          }
+        }
+      }
     }
   },
   "resourceBundle": "com-smartq-calendarviz/nls/messages",

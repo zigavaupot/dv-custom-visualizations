@@ -358,7 +358,7 @@
 .kanban-legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   font-size: 11px;
   line-height: 14px;
   color: #333;
@@ -366,8 +366,8 @@
 
 .kanban-legend-color {
   display: inline-block;
-  width: 16px;
-  height: 16px;
+  width: 10px;
+  height: 10px;
   border-radius: 2px;
   border: 1px solid rgba(0,0,0,0.1);
   flex-shrink: 0;

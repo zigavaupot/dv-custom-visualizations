@@ -32,18 +32,22 @@ define([
    * Tell Oracle DV how logical roles map to the physical data edges.
    *
    * DATA LAYOUT STRUCTURE:
-   * - ROW edge: Task title (layer 0), Color (layer 1), Tooltip columns (layers 2+)
+   * - ROW edge: Task/title columns, Color column, Conditional Formatting columns, Tooltip columns
    * - DATA edge: Completion percentage measure
    *
    * GRAMMAR PLACEHOLDERS:
    * - Rows (Task): Primary dimension - task name
    * - Color: Category for stripe color (1 column)
-   * - Tooltip: Additional attributes (first can be Y/N condition flag)
+   * - Shape (Conditional Formatting): up to 2 flags (RED, YELLOW)
+   * - Size (URL): optional hidden hyperlink target
+   * - Tooltip: Additional attributes
    * - Values: Completion % measure
    *
    * Logical.ROW      -> Physical.ROW (layer 0: task title)
    * Logical.COLOR    -> Physical.ROW (layer 1: color/category)
-   * Logical.TOOLTIP  -> Physical.ROW (layers 2+: tooltip attributes, first can be condition)
+   * Logical.GLYPH    -> Physical.ROW (layers for conditional formatting flags)
+   * Logical.SIZE     -> Physical.ROW (layer for URL target)
+   * Logical.TOOLTIP  -> Physical.ROW (layers for tooltip attributes)
    * Logical.MEASURES -> Physical.DATA (completion %)
    */
   KanbanVizDataModelHandler.prototype.getLogicalMapper = function () {
@@ -59,9 +63,13 @@ define([
     // COLOR logical -> ROW physical layer 1 (color/category for stripe)
     mapper.addCategoricalMapping(datamodelshapes.Logical.COLOR, physRow);
 
-    // TOOLTIP logical -> ROW physical layers 2+ 
-    // First tooltip column can be used as condition flag (Y/N)
-    // Remaining columns appear in tooltip
+    // GLYPH logical -> ROW physical layers (conditional formatting flags)
+    mapper.addCategoricalMapping(datamodelshapes.Logical.GLYPH, physRow);
+
+    // SIZE logical -> ROW physical layer (hidden URL target)
+    mapper.addCategoricalMapping(datamodelshapes.Logical.SIZE, physRow);
+
+    // TOOLTIP logical -> ROW physical layers (tooltip attributes)
     mapper.addCategoricalMapping(datamodelshapes.Logical.TOOLTIP, physRow);
 
     // NOTE: Removed Logical.DETAIL - it doesn't exist in Oracle DV API!

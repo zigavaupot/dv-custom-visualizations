@@ -7,11 +7,14 @@
 define([
     'jquery',
     'obitech-framework/jsx',
+    'obitech-application/gadgets',
     'obitech-report/datavisualization',
+    'obitech-report/gadgetdialog',
     'obitech-reportservices/datamodelshapes',
     'obitech-reportservices/data',
     'obitech-reportservices/events',
     'obitech-reportservices/interactionservice',
+    'obitech-application/extendable-ui-definitions',
     'obitech-appservices/logger',
     'com-smartq-calendarviz/colorConfig',
     'com-smartq-calendarviz/nls/root/messages',
@@ -20,12 +23,14 @@ define([
     'com-smartq-calendarviz/nls/de/messages',
     'com-smartq-calendarviz/nls/es/messages',
     'com-smartq-calendarviz/nls/hr/messages',
+    'com-smartq-calendarviz/nls/it/messages',
     'css!com-smartq-calendarviz/calendarVizstyles'
-], function($, jsx, dataviz, datamodelshapes, data, events, interactions, logger, colorConfig, messages_en, messages_sl, messages_fr, messages_de, messages_es, messages_hr) {
+], function($, jsx, gadgets, dataviz, gadgetdialog, datamodelshapes, data, events, interactions, euidef, logger, colorConfig, messages_en, messages_sl, messages_fr, messages_de, messages_es, messages_hr, messages_it) {
     'use strict';
 
     var MODULE_NAME = "CalendarViz";
     var _logger = new logger.Logger(MODULE_NAME);
+    var VIEW_CONFIG_KEY = 'calendarFormatting';
 
     // ========================================================================
     // LOCALIZATION (NLS) - Language support
@@ -36,6 +41,7 @@ define([
     // - de/messages.js (German)
     // - es/messages.js (Spanish)
     // - hr/messages.js (Croatian)
+    // - it/messages.js (Italian)
     // ========================================================================
 
     /**
@@ -123,6 +129,9 @@ define([
             } else if (userLang.indexOf('hr') === 0) {
                 messages = buildMessagesWithArrays(messages_hr);
                 console.log('[CalendarViz] Using Croatian translations from NLS file');
+            } else if (userLang.indexOf('it') === 0) {
+                messages = buildMessagesWithArrays(messages_it);
+                console.log('[CalendarViz] Using Italian translations from NLS file');
             } else {
                 messages = buildMessagesWithArrays(messages_en);
                 console.log('[CalendarViz] Using English translations from NLS file (default)');
@@ -139,21 +148,28 @@ define([
     // ========================================================================
     // IMPORTANT: Adjust these numbers based on how many columns you add to each grammar slot!
     //
-    // Current setup: 3 columns in Rows (ID, Task Name, Date), 1 in Color, 2 in Tooltip
+    // Current setup: 5 columns in Rows (title, subtitle, date, middle text, bottom text),
+    // 1 in Color, 2 in Conditional Formatting, 1 in URL, N in Tooltip
     //
     // Layer mapping:
-    //   Layer 0: ID (Rows - 1st column)
-    //   Layer 1: Task Name (Rows - 2nd column)
-    //   Layer 2: Date (Rows - 3rd column)
-    //   Layer 3: Color Category (Color placeholder) - for left edge stripe
-    //   Layer 4: RED condition flag (Tooltip - 1st column) - for red background
-    //   Layer 5: YELLOW condition flag (Tooltip - 2nd column) - for yellow background
+    //   Layer 0: Task Title (Rows - 1st column)
+    //   Layer 1: Subtitle Left (Rows - 2nd column)
+    //   Layer 2: Date (Rows - 3rd column) - used for calendar placement
+    //   Layer 3: Middle text (Rows - 4th column)
+    //   Layer 4: Bottom text (Rows - 5th column)
+    //   Layer 5: Color Category (Color placeholder) - for left edge stripe
+    //   Layer 6: RED condition flag (Conditional Formatting - 1st column)
+    //   Layer 7: YELLOW condition flag (Conditional Formatting - 2nd column)
+    //   Layer 8: URL column - hidden, used for title click navigation
+    //   Layer 9+: Tooltip columns
     //
-    // The first 2 tooltip columns will always be used for red/yellow color flags
     // ========================================================================
     var CALENDAR_CONFIG = {
-        rowCount: 3,      // Number of columns in Rows grammar (ID, Task Name, Date)
-        colorCount: 1     // Number of columns in Color grammar (0 or 1)
+        rowCount: 5,
+        colorCount: 1,
+        glyphCount: 2,
+        sizeCount: 1,
+        tooltipCount: 0
     };
     // ========================================================================
 
@@ -210,6 +226,112 @@ define([
         if (CATEGORY_COLOR_MAP === null) return null; // Not initialized yet
 
         return CATEGORY_COLOR_MAP[categoryValue] || null;
+    }
+
+    function getTaskColorSortRank(task) {
+        if (task && task.conditionFlagRed) return 0;
+        if (task && task.conditionFlagYellow) return 1;
+        return 2;
+    }
+
+    function compareTaskIds(a, b) {
+        var idA = a && a.subtitle1 != null ? String(a.subtitle1).trim() : "";
+        var idB = b && b.subtitle1 != null ? String(b.subtitle1).trim() : "";
+        if (idA && idB) {
+            var compared = idA.localeCompare(idB, undefined, { numeric: true, sensitivity: "base" });
+            if (compared !== 0) return compared;
+        } else if (idA) {
+            return -1;
+        } else if (idB) {
+            return 1;
+        }
+        return ((a && a.rowIndex) || 0) - ((b && b.rowIndex) || 0);
+    }
+
+    function compareTasksForCardOrder(a, b) {
+        var colorRank = getTaskColorSortRank(a) - getTaskColorSortRank(b);
+        if (colorRank !== 0) return colorRank;
+        return compareTaskIds(a, b);
+    }
+
+    function normalizeUrl(urlValue) {
+        if (urlValue === null || urlValue === undefined) return null;
+        var raw = String(urlValue).trim();
+        if (!raw) return null;
+        if (/^https?:\/\//i.test(raw)) return raw;
+        if (/^mailto:/i.test(raw)) return raw;
+        if (/^www\./i.test(raw)) return "https://" + raw;
+        return null;
+    }
+
+    function normalizeAlignmentOption(value, defaultValue) {
+        if (value === undefined || value === null || value === "" || value === "auto") {
+            return defaultValue;
+        }
+        if (value === "left" || value === "center" || value === "right") {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    function getTextAlignStyle(value, defaultValue) {
+        return 'text-align:' + normalizeAlignmentOption(value, defaultValue) + ';width:100%;';
+    }
+
+    function getFlexAlignStyle(value, defaultValue) {
+        var align = normalizeAlignmentOption(value, defaultValue);
+        var flexAlign = align === "left" ? "flex-start" : (align === "right" ? "flex-end" : "center");
+        return 'align-items:' + flexAlign + ';text-align:' + align + ';';
+    }
+
+    function isFullyCompletedMeasure(rawValue, valueFormat) {
+        if (rawValue === null || rawValue === undefined || rawValue === "") {
+            return false;
+        }
+
+        var num = parseFloat(rawValue);
+        if (isNaN(num)) {
+            return false;
+        }
+
+        if (valueFormat === 'percent') {
+            return Math.abs(num - 1) < 0.000001 || Math.abs(num - 100) < 0.000001;
+        }
+
+        return Math.abs(num - 100) < 0.000001;
+    }
+
+    function formatMeasureValue(rawValue, valueFormat) {
+        if (rawValue === null || rawValue === undefined || rawValue === "") return "";
+        var num = parseFloat(rawValue);
+        if (isNaN(num)) return String(rawValue);
+
+        if (valueFormat === "auto") {
+            return String(rawValue);
+        }
+        if (valueFormat === "#,##0") {
+            return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(num);
+        }
+        if (valueFormat === "#,##0.00") {
+            return new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+        }
+        if (valueFormat === "currency") {
+            return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(num);
+        }
+        if (valueFormat === "percent") {
+            return new Intl.NumberFormat(undefined, { style: 'percent', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(num);
+        }
+
+        return String(rawValue);
+    }
+
+    function getDefaultFormattingOptions() {
+        return {
+            valueFormat: 'percent',
+            attribute1Alignment: 'center',
+            attribute2Alignment: 'center',
+            attribute3Alignment: 'center'
+        };
     }
 
     /**
@@ -429,19 +551,34 @@ define([
 
     // Inherit from dataviz.DataVisualization base class
     jsx.extend(CalendarVisualization, dataviz.DataVisualization);
+    CalendarVisualization.superClass = CalendarVisualization.superClass || CalendarVisualization.superclass;
 
     /**
      * Initialize the visualization (optional override)
      */
     CalendarVisualization.prototype.initialize = function(oCfg) {
-        CalendarVisualization.superclass.initialize.call(this, oCfg);
+        CalendarVisualization.superClass.initialize.call(this, oCfg);
         _logger.info("CalendarViz initialized");
 
         // Set up resize handler
         var self = this;
-        $(window).on('resize', function() {
+        $(window).off('resize.calendarViz');
+        $(window).on('resize.calendarViz', function() {
             self.resizeVisualization();
         });
+    };
+
+    CalendarVisualization.prototype._fillDefaultOptions = function(oOptions) {
+        oOptions = oOptions || {};
+        var formatting = oOptions[VIEW_CONFIG_KEY] || {};
+        var defaults = getDefaultFormattingOptions();
+        formatting.valueFormat = jsx.defaultParam(formatting.valueFormat, defaults.valueFormat);
+        formatting.attribute1Alignment = jsx.defaultParam(formatting.attribute1Alignment, defaults.attribute1Alignment);
+        formatting.attribute2Alignment = jsx.defaultParam(formatting.attribute2Alignment, defaults.attribute2Alignment);
+        formatting.attribute3Alignment = jsx.defaultParam(formatting.attribute3Alignment, defaults.attribute3Alignment);
+        oOptions[VIEW_CONFIG_KEY] = formatting;
+        this.getSettings().setViewConfigJSON(dataviz.SettingsNS.CHART, oOptions);
+        return oOptions;
     };
 
     /**
@@ -635,9 +772,21 @@ define([
 
             // Extract data layout from rendering context (like kanbanViz does)
             var oDataLayout = null;
+            var oLogicalDataModel = null;
+            var oDataModel = null;
             try {
                 if (oTransientRenderingContext && typeof oTransientRenderingContext.get === "function") {
                     oDataLayout = oTransientRenderingContext.get(dataviz.DataContextProperty.DATA_LAYOUT);
+                    try {
+                        if (dataviz.DataContextProperty.LOGICAL_DATA_MODEL) {
+                            oLogicalDataModel = oTransientRenderingContext.get(dataviz.DataContextProperty.LOGICAL_DATA_MODEL);
+                        }
+                    } catch (_) {}
+                    try {
+                        if (dataviz.DataContextProperty.DATA_MODEL) {
+                            oDataModel = oTransientRenderingContext.get(dataviz.DataContextProperty.DATA_MODEL);
+                        }
+                    } catch (_) {}
                 }
             } catch (error) {
                 _logger.warn("No DATA_LAYOUT in render context", error);
@@ -651,25 +800,37 @@ define([
             }
 
             // Check if we have the minimum required data using data model (like kanbanViz)
-            var oDataModel = this.getRootDataModel();
+            var activeDataModel = oLogicalDataModel || oDataModel || this.getRootDataModel();
             var rowCols = [];
             try {
-                if (oDataModel) {
-                    rowCols = oDataModel.getColumnIDsIn(datamodelshapes.Physical.ROW) || [];
+                if (activeDataModel) {
+                    rowCols = activeDataModel.getColumnIDsIn(datamodelshapes.Physical.ROW) || [];
                 }
             } catch (e) {
                 rowCols = [];
             }
 
-            if (rowCols.length < 2) {
+            if (!rowCols || rowCols.length === 0) {
+                try {
+                    var probeCount = oDataLayout.getEdgeExtent(datamodelshapes.Physical.ROW) || 0;
+                    if (probeCount > 0) {
+                        rowCols = new Array(probeCount);
+                    }
+                } catch (_) {
+                    rowCols = [];
+                }
+            }
+
+            if (rowCols.length < 3) {
                 var columnCount = rowCols.length;
                 container.innerHTML = '<div class="calendar-error">' +
-                    '<p><strong>Calendar View requires at least 2 columns in Rows</strong></p>' +
+                    '<p><strong>Calendar View requires at least 3 columns in Rows</strong></p>' +
                     '<p>Currently have: ' + columnCount + ' column(s)</p>' +
                     '<ol>' +
-                    '<li><strong>Column 1:</strong> Task Name (required)</li>' +
-                    '<li><strong>Column 2:</strong> Date / Rok izvedbe (required)</li>' +
-                    '<li><strong>Column 3-4:</strong> Additional details (optional)</li>' +
+                    '<li><strong>Column 1:</strong> Task title (required)</li>' +
+                    '<li><strong>Column 2:</strong> Subtitle left (optional)</li>' +
+                    '<li><strong>Column 3:</strong> Date / Rok izvedbe (required)</li>' +
+                    '<li><strong>Column 4-5:</strong> Additional details (optional)</li>' +
                     '</ol>' +
                     '<p>Please add the required columns to the Rows placeholder.</p>' +
                     '</div>';
@@ -679,10 +840,13 @@ define([
 
             // Store current data layout for marking/selection service
             this._currentDataLayout = oDataLayout;
+            this._currentLogicalDataModel = oLogicalDataModel || null;
+            this._currentDataModel = activeDataModel || null;
 
             // Get user's date format preference
-            var options = this.getViewConfig() || {};
+            var options = this._fillDefaultOptions(this.getViewConfig() || {});
             this._dateFormat = options.dateFormat || "yyyy-MM-dd";
+            this._valueFormat = (options[VIEW_CONFIG_KEY] && options[VIEW_CONFIG_KEY].valueFormat) || "percent";
             console.log("CalendarViz: Using date format:", this._dateFormat);
 
             // Extract tasks from data layout
@@ -697,7 +861,7 @@ define([
             if (this._tasks.length === 0) {
                 container.innerHTML = '<div class="calendar-error">' +
                     '<p><strong>No valid tasks found</strong></p>' +
-                    '<p>Make sure the 2nd column (Date) contains valid date values.</p>' +
+                    '<p>Make sure the 3rd column (Date) contains valid date values.</p>' +
                     '<p>Check browser console for detailed error messages.</p>' +
                     '</div>';
                 this._setIsRendered(true);
@@ -737,211 +901,382 @@ define([
                 console.warn("CalendarViz: No data layout provided to _extractTasks");
                 return tasks;
             }
-
-            // Get data model and column IDs (like kanbanViz)
-            var oDataModel = this.getRootDataModel();
-            if (!oDataModel) {
+            var self = this;
+            var oRootDataModel = this.getRootDataModel();
+            var oDataModel = this._currentLogicalDataModel || this._currentDataModel || oRootDataModel;
+            if (!oDataModel && !oRootDataModel) {
                 console.warn("CalendarViz: No data model available");
                 return tasks;
             }
 
-            // Get all columns on the ROW edge
-            var rowCols = [];
-            try {
-                rowCols = oDataModel.getColumnIDsIn(datamodelshapes.Physical.ROW) || [];
-            } catch (e) {
-                console.error("CalendarViz: Error getting column IDs:", e);
-                return tasks;
-            }
-
-            console.log("CalendarViz: Found " + rowCols.length + " columns in Physical.ROW");
-
-            if (rowCols.length < 2) {
-                console.warn("CalendarViz: Need at least 2 columns: task name and date");
-                return tasks;
-            }
-
-            // Separate columns based on grammar slot configuration
-            // Oracle Analytics places columns in Physical.ROW in this order:
-            // 1. ROW grammar columns (0 to rowCount-1)
-            // 2. COLOR grammar column (if colorCount = 1)
-            // 3. TOOLTIP grammar columns (remaining)
-            var rowRoleCount = CALENDAR_CONFIG.rowCount || 2;
-            var colorRoleCount = CALENDAR_CONFIG.colorCount || 0;
-
-            var rowRoleColumns = [];
-            var colorRoleColumns = [];
-            var tooltipRoleColumns = [];
-
-            for (var i = 0; i < rowCols.length; i++) {
-                if (i < rowRoleCount) {
-                    rowRoleColumns.push(rowCols[i]);
-                } else if (i < rowRoleCount + colorRoleCount) {
-                    colorRoleColumns.push(rowCols[i]);
-                } else {
-                    tooltipRoleColumns.push(rowCols[i]);
-                }
-            }
-
-            console.log("CalendarViz: Config - ROW:", rowRoleCount, "COLOR:", colorRoleCount);
-            console.log("CalendarViz: Separated - ROW:", rowRoleColumns.length, "COLOR:", colorRoleColumns.length, "TOOLTIP:", tooltipRoleColumns.length);
-
-            // Column assignments (3 ROW columns: ID, Task Name, Date)
-            var idColId = rowRoleColumns[0] || null;            // Layer 0: ID (required)
-            var taskColId = rowRoleColumns[1] || null;          // Layer 1: Task name (required)
-            var dateColId = rowRoleColumns[2] || null;          // Layer 2: Date (required)
-            var colorColId = colorRoleColumns[0] || null;       // Color category
-
-            if (!idColId || !taskColId || !dateColId) {
-                console.warn("CalendarViz: Missing required columns (ID, task name, or date)");
-                return tasks;
-            }
-
-            console.log("CalendarViz: Using ID column:", idColId, "task column:", taskColId, "and date column:", dateColId);
-
-            // Get row count from data layout
             var rowCount = 0;
             try {
                 rowCount = oDataLayout.getEdgeExtent(datamodelshapes.Physical.ROW) || 0;
-            } catch (e) {
-                console.error("CalendarViz: Error getting row count:", e);
+            } catch (eRowCnt) {
+                rowCount = 0;
+            }
+
+            var rowCols = [];
+            try {
+                rowCols = oDataModel.getColumnIDsIn(datamodelshapes.Physical.ROW) || [];
+            } catch (eCols) {
+                rowCols = [];
+            }
+
+            if (!rowCols || rowCols.length === 0) {
+                var detectedLayers = [];
+                var maxProbeLayers = 40;
+                var sampleRows = Math.min(Math.max(rowCount, 1), 20);
+                var missStreak = 0;
+                for (var layerProbe = 0; layerProbe < maxProbeLayers; layerProbe++) {
+                    var layerReadable = false;
+                    for (var rr = 0; rr < sampleRows; rr++) {
+                        try {
+                            oDataLayout.getValue(datamodelshapes.Physical.ROW, layerProbe, rr, false);
+                            layerReadable = true;
+                            break;
+                        } catch (_) {}
+                    }
+                    if (layerReadable) {
+                        detectedLayers.push(layerProbe);
+                        missStreak = 0;
+                    } else {
+                        missStreak++;
+                        if (detectedLayers.length > 0 && missStreak >= 3) {
+                            break;
+                        }
+                    }
+                }
+                if (detectedLayers.length > 0) {
+                    rowCols = detectedLayers;
+                    console.log("[CalendarViz] Using probed Physical.ROW layers:", rowCols.length);
+                }
+            }
+
+            function resolveDisplayName(colId) {
+                if (colId === null || colId === undefined) return null;
+                var models = [oDataModel, oRootDataModel, self._currentDataModel, self._currentLogicalDataModel];
+                for (var mi = 0; mi < models.length; mi++) {
+                    var model = models[mi];
+                    if (!model || !model.getColumnByID) continue;
+                    try {
+                        var cObj = model.getColumnByID(colId);
+                        if (!cObj) continue;
+                        if (cObj.getCaption && cObj.getCaption()) return String(cObj.getCaption()).trim();
+                        if (cObj.getDisplayName && cObj.getDisplayName()) return String(cObj.getDisplayName()).trim();
+                        if (cObj.getLabel && cObj.getLabel()) return String(cObj.getLabel()).trim();
+                        if (cObj.getName && cObj.getName()) return String(cObj.getName()).trim();
+                    } catch (_) {}
+                }
+                return (typeof colId === "string") ? colId : null;
+            }
+
+            function getLogicalRole(colId) {
+                if (colId === null || colId === undefined) return null;
+                var models = [oDataModel, oRootDataModel, self._currentDataModel, self._currentLogicalDataModel];
+                for (var mi = 0; mi < models.length; mi++) {
+                    var model = models[mi];
+                    if (!model || !model.getColumnByID) continue;
+                    try {
+                        var cObj = model.getColumnByID(colId);
+                        if (cObj && cObj.getLogicalRole) {
+                            var role = cObj.getLogicalRole();
+                            if (role !== null && role !== undefined) return role;
+                        }
+                    } catch (_) {}
+                }
+                return null;
+            }
+
+            function getRowLayerIndex(colId) {
+                if (colId === null || colId === undefined) return -1;
+                var idx = rowCols.indexOf(colId);
+                if (idx >= 0) return idx;
+                var colIdStr = String(colId);
+                for (var i = 0; i < rowCols.length; i++) {
+                    if (String(rowCols[i]) === colIdStr) return i;
+                }
+                var targetName = resolveDisplayName(colId);
+                if (targetName) {
+                    for (var j = 0; j < rowCols.length; j++) {
+                        var rowName = resolveDisplayName(rowCols[j]);
+                        if (rowName && rowName === targetName) return j;
+                    }
+                }
+                return -1;
+            }
+
+            function sameRowColumn(colA, colB) {
+                if (colA === null || colA === undefined || colB === null || colB === undefined) return false;
+                var a = getRowLayerIndex(colA);
+                var b = getRowLayerIndex(colB);
+                return a >= 0 && b >= 0 && a === b;
+            }
+
+            function tryLogicalColumns(logicalEdge) {
+                var cols = null;
+                var edgeCandidates = [];
+                var models = [oDataModel, oRootDataModel, self._currentDataModel, self._currentLogicalDataModel];
+                function pushEdgeCandidate(v) {
+                    if (v === null || v === undefined) return;
+                    for (var i = 0; i < edgeCandidates.length; i++) {
+                        if (edgeCandidates[i] === v) return;
+                    }
+                    edgeCandidates.push(v);
+                }
+                pushEdgeCandidate(logicalEdge);
+                try { pushEdgeCandidate(String(logicalEdge)); } catch (_) {}
+                try { pushEdgeCandidate(String(logicalEdge).toLowerCase()); } catch (_) {}
+                try { pushEdgeCandidate(String(logicalEdge).toUpperCase()); } catch (_) {}
+
+                for (var mi0 = 0; mi0 < models.length; mi0++) {
+                    var m0 = models[mi0];
+                    if (!m0) continue;
+                    for (var ec0 = 0; ec0 < edgeCandidates.length; ec0++) {
+                        try {
+                            cols = m0.getUsedColumnIDsIn && m0.getUsedColumnIDsIn(edgeCandidates[ec0]);
+                            if (cols && cols.length > 0) return cols.slice();
+                        } catch (_) {}
+                    }
+                }
+                for (var mi1 = 0; mi1 < models.length; mi1++) {
+                    var m1 = models[mi1];
+                    if (!m1) continue;
+                    for (var ec1 = 0; ec1 < edgeCandidates.length; ec1++) {
+                        try {
+                            cols = m1.getColumnIDsIn && m1.getColumnIDsIn(edgeCandidates[ec1]);
+                            if (cols && cols.length > 0) return cols.slice();
+                        } catch (_) {}
+                    }
+                }
+                for (var mi2 = 0; mi2 < models.length; mi2++) {
+                    var m2 = models[mi2];
+                    if (!m2 || !m2.getLogicalEdges) continue;
+                    try {
+                        var edges = m2.getLogicalEdges();
+                        if (edges && edges.getChildByName) {
+                            for (var ec2 = 0; ec2 < edgeCandidates.length; ec2++) {
+                                var edgeObj = edges.getChildByName(String(edgeCandidates[ec2]).toLowerCase());
+                                if (edgeObj && edgeObj.getUsedColumnIDsIn) {
+                                    cols = edgeObj.getUsedColumnIDsIn();
+                                    if (cols && cols.length > 0) return cols.slice();
+                                }
+                            }
+                        }
+                    } catch (_) {}
+                }
+                return null;
+            }
+
+            var logicalRowCols = tryLogicalColumns(datamodelshapes.Logical.ROW) || [];
+            var logicalColorCols = tryLogicalColumns(datamodelshapes.Logical.COLOR) || [];
+            var logicalGlyphCols = tryLogicalColumns(datamodelshapes.Logical.GLYPH) || [];
+            var logicalSizeCols = tryLogicalColumns(datamodelshapes.Logical.SIZE) || [];
+            var logicalTooltipCols = tryLogicalColumns(datamodelshapes.Logical.TOOLTIP) || [];
+
+            var rowRoleColumns = [];
+            var colorRoleColumns = [];
+            var glyphRoleColumns = [];
+            var sizeRoleColumns = [];
+            var tooltipRoleColumns = [];
+
+            var hasLogicalLists = logicalRowCols.length || logicalColorCols.length || logicalGlyphCols.length || logicalSizeCols.length || logicalTooltipCols.length;
+            if (hasLogicalLists) {
+                rowRoleColumns = logicalRowCols.filter(function(c){ return getRowLayerIndex(c) >= 0; });
+                colorRoleColumns = logicalColorCols.filter(function(c){ return getRowLayerIndex(c) >= 0; });
+                glyphRoleColumns = logicalGlyphCols.filter(function(c){ return getRowLayerIndex(c) >= 0; });
+                sizeRoleColumns = logicalSizeCols.filter(function(c){ return getRowLayerIndex(c) >= 0; });
+                tooltipRoleColumns = logicalTooltipCols.filter(function(c){ return getRowLayerIndex(c) >= 0; });
+                if (!(rowRoleColumns.length || colorRoleColumns.length || glyphRoleColumns.length || sizeRoleColumns.length || tooltipRoleColumns.length)) {
+                    hasLogicalLists = false;
+                }
+            }
+
+            if (!hasLogicalLists) {
+                var rowRoleCount = CALENDAR_CONFIG.rowCount || 3;
+                var colorRoleCount = CALENDAR_CONFIG.colorCount || 0;
+                var glyphRoleCount = CALENDAR_CONFIG.glyphCount || 0;
+                var sizeRoleCount = CALENDAR_CONFIG.sizeCount || 0;
+                for (var rc = 0; rc < rowCols.length; rc++) {
+                    var colId = rowCols[rc];
+                    var logicalRole = getLogicalRole(colId);
+                    if (logicalRole === datamodelshapes.Logical.ROW || logicalRole === "row") {
+                        rowRoleColumns.push(colId);
+                    } else if (logicalRole === datamodelshapes.Logical.COLOR || logicalRole === "color") {
+                        colorRoleColumns.push(colId);
+                    } else if (logicalRole === datamodelshapes.Logical.GLYPH || logicalRole === "glyph") {
+                        glyphRoleColumns.push(colId);
+                    } else if (logicalRole === datamodelshapes.Logical.SIZE || logicalRole === "size") {
+                        sizeRoleColumns.push(colId);
+                    } else if (logicalRole === datamodelshapes.Logical.TOOLTIP || logicalRole === "tooltip") {
+                        tooltipRoleColumns.push(colId);
+                    }
+                }
+                if (!(rowRoleColumns.length || colorRoleColumns.length || glyphRoleColumns.length || sizeRoleColumns.length || tooltipRoleColumns.length)) {
+                    for (var pi = 0; pi < rowCols.length; pi++) {
+                        if (pi < rowRoleCount) {
+                            rowRoleColumns.push(rowCols[pi]);
+                        } else if (pi < rowRoleCount + colorRoleCount) {
+                            colorRoleColumns.push(rowCols[pi]);
+                        } else if (pi < rowRoleCount + colorRoleCount + glyphRoleCount) {
+                            glyphRoleColumns.push(rowCols[pi]);
+                        } else if (pi < rowRoleCount + colorRoleCount + glyphRoleCount + sizeRoleCount) {
+                            sizeRoleColumns.push(rowCols[pi]);
+                        } else {
+                            tooltipRoleColumns.push(rowCols[pi]);
+                        }
+                    }
+                }
+            }
+
+            var explicitRowCount = logicalRowCols.length;
+            var explicitColorCount = logicalColorCols.length;
+            var explicitGlyphCount = logicalGlyphCols.length;
+            var explicitSizeCount = logicalSizeCols.length;
+            var actualColorCount = colorRoleColumns.length;
+            var actualGlyphCount = glyphRoleColumns.length;
+            var actualSizeCount = sizeRoleColumns.length;
+
+            var rowSlotCount = explicitRowCount > 0 ? explicitRowCount : rowRoleColumns.length;
+            if (rowSlotCount < 3 && rowCols.length > 0) rowSlotCount = Math.min(Math.max(rowCols.length, 3), 5);
+            if (rowSlotCount > 5) rowSlotCount = 5;
+
+            var taskColId = rowRoleColumns.length > 0 ? rowRoleColumns[0] : null;
+            var subtitle1ColId = rowRoleColumns.length > 1 ? rowRoleColumns[1] : null;
+            var dateColId = rowRoleColumns.length > 2 ? rowRoleColumns[2] : null;
+            var subtitle3ColId = rowRoleColumns.length > 3 ? rowRoleColumns[3] : null;
+            var bottomAttrColId = rowRoleColumns.length > 4 ? rowRoleColumns[4] : null;
+            var colorColId = colorRoleColumns.length > 0 ? colorRoleColumns[0] : null;
+            var urlColId = sizeRoleColumns.length > 0 ? sizeRoleColumns[0] : (logicalSizeCols.length > 0 ? logicalSizeCols[0] : null);
+            var redConditionColId = glyphRoleColumns.length > 0 ? glyphRoleColumns[0] : (logicalGlyphCols.length > 0 ? logicalGlyphCols[0] : null);
+            var yellowConditionColId = glyphRoleColumns.length > 1 ? glyphRoleColumns[1] : (logicalGlyphCols.length > 1 ? logicalGlyphCols[1] : null);
+
+            var taskLayer = rowSlotCount >= 1 ? 0 : -1;
+            var subtitle1Layer = rowSlotCount >= 2 ? 1 : -1;
+            var dateLayer = rowSlotCount >= 3 ? 2 : -1;
+            var subtitle3Layer = rowSlotCount >= 4 ? 3 : -1;
+            var bottomAttrLayer = rowSlotCount >= 5 ? 4 : -1;
+            var colorLayer = colorColId ? getRowLayerIndex(colorColId) : -1;
+            if (explicitColorCount > 0) colorLayer = rowSlotCount;
+
+            var redConditionLayer = redConditionColId ? getRowLayerIndex(redConditionColId) : -1;
+            if (redConditionLayer < 0 && actualGlyphCount > 0) redConditionLayer = rowSlotCount + actualColorCount;
+
+            var yellowConditionLayer = yellowConditionColId ? getRowLayerIndex(yellowConditionColId) : -1;
+            if (yellowConditionLayer < 0 && actualGlyphCount > 1) yellowConditionLayer = rowSlotCount + actualColorCount + 1;
+
+            var urlLayer = urlColId ? getRowLayerIndex(urlColId) : -1;
+            if (urlLayer < 0 && actualSizeCount > 0) urlLayer = rowSlotCount + actualColorCount + actualGlyphCount;
+
+            var tooltipStartLayer = rowSlotCount + actualColorCount + actualGlyphCount + actualSizeCount;
+            var additionalTooltipColIds = [];
+            for (var tc = 0; tc < tooltipRoleColumns.length; tc++) {
+                var tipColId = tooltipRoleColumns[tc];
+                if (tipColId !== redConditionColId &&
+                    tipColId !== yellowConditionColId &&
+                    tipColId !== urlColId &&
+                    !sameRowColumn(tipColId, urlColId)) {
+                    additionalTooltipColIds.push(tipColId);
+                }
+            }
+            additionalTooltipColIds.sort(function(a, b) {
+                return getRowLayerIndex(a) - getRowLayerIndex(b);
+            });
+
+            if (taskColId === null || taskColId === undefined || dateColId === null || dateColId === undefined) {
+                console.warn("CalendarViz: Missing required rows columns (task title or date)");
                 return tasks;
             }
 
+            function getValueAtLayer(layerIdx, rowIdx) {
+                if (layerIdx == null || layerIdx < 0) return null;
+                try {
+                    return oDataLayout.getValue(datamodelshapes.Physical.ROW, layerIdx, rowIdx, false);
+                } catch (_) {
+                    return null;
+                }
+            }
+
+            function isPositiveFlag(rawValue) {
+                if (rawValue === null || rawValue === undefined || String(rawValue).trim() === "") return false;
+                var val = String(rawValue).trim().toLowerCase();
+                return val === 'y' || val === 'yes' || val === 'd' || val === 'da' || val === '1' || val === 'true';
+            }
+
+            var titleDisplayName = resolveDisplayName(taskColId) || "Task";
+            var subtitle1DisplayName = resolveDisplayName(subtitle1ColId) || "";
+            var dateDisplayName = resolveDisplayName(dateColId) || "Date";
+            var subtitle3DisplayName = resolveDisplayName(subtitle3ColId) || "";
+            var bottomAttrDisplayName = resolveDisplayName(bottomAttrColId) || "";
+            var colorDisplayName = resolveDisplayName(colorColId) || "Color";
+
             console.log("CalendarViz: Processing " + rowCount + " rows of data");
 
-            // Iterate through all rows
             for (var r = 0; r < rowCount; r++) {
-                var task = {};
+                var taskTitle = getValueAtLayer(taskLayer, r);
+                var subtitle1 = getValueAtLayer(subtitle1Layer, r);
+                var dateValue = getValueAtLayer(dateLayer, r);
+                var subtitle3 = getValueAtLayer(subtitle3Layer, r);
+                var bottomAttr = getValueAtLayer(bottomAttrLayer, r);
+                var colorValue = getValueAtLayer(colorLayer, r);
+                var urlValue = getValueAtLayer(urlLayer, r);
+                var redValue = getValueAtLayer(redConditionLayer, r);
+                var yellowValue = getValueAtLayer(yellowConditionLayer, r);
 
-                // Extract ID (required)
-                try {
-                    var idLayerIdx = rowCols.indexOf(idColId);
-                    if (idLayerIdx >= 0) {
-                        task.id = oDataLayout.getValue(datamodelshapes.Physical.ROW, idLayerIdx, r, false);
-                        if (!task.id) task.id = "";
-                    } else {
-                        task.id = "";
-                    }
-                } catch (e) {
-                    console.error("CalendarViz: Error extracting ID at row " + r + ":", e);
-                    task.id = "";
-                }
-
-                // Extract task name (required)
-                try {
-                    var taskLayerIdx = rowCols.indexOf(taskColId);
-                    if (taskLayerIdx >= 0) {
-                        task.title = oDataLayout.getValue(datamodelshapes.Physical.ROW, taskLayerIdx, r, false);
-                        if (!task.title) task.title = "Untitled";
-                    } else {
-                        task.title = "Untitled";
-                    }
-                } catch (e) {
-                    console.error("CalendarViz: Error extracting task name at row " + r + ":", e);
-                    task.title = "Untitled";
-                }
-
-                // Extract date (required)
-                var dateValue = null;
-                try {
-                    var dateLayerIdx = rowCols.indexOf(dateColId);
-                    if (dateLayerIdx >= 0) {
-                        dateValue = oDataLayout.getValue(datamodelshapes.Physical.ROW, dateLayerIdx, r, false);
-                    }
-                } catch (e) {
-                    console.error("CalendarViz: Error extracting date at row " + r + ":", e);
-                }
-
-                // Log first date value for debugging
-                if (r === 0) {
-                    console.log("CalendarViz: First date value type: " + typeof dateValue + ", value: " + dateValue);
-                }
-
-                task.date = this._parseDate(dateValue);
-                if (!task.date) {
+                var parsedDate = this._parseDate(dateValue);
+                if (!parsedDate) {
                     console.warn("CalendarViz: Invalid date at row " + r + ": " + JSON.stringify(dateValue));
-                    continue; // Skip tasks without valid dates
+                    continue;
                 }
 
-                // Extract color category
-                if (colorColId) {
+                var tooltipFields = [];
+                for (var t = 0; t < additionalTooltipColIds.length; t++) {
                     try {
-                        var colorLayerIdx = rowCols.indexOf(colorColId);
-                        if (colorLayerIdx >= 0) {
-                            task.colorCategory = oDataLayout.getValue(datamodelshapes.Physical.ROW, colorLayerIdx, r, false) || "";
+                        var tooltipLayerIdx = tooltipStartLayer + t;
+                        var tooltipValue = oDataLayout.getValue(datamodelshapes.Physical.ROW, tooltipLayerIdx, r, false);
+                        if (tooltipValue !== null && tooltipValue !== undefined && String(tooltipValue).trim() !== "") {
+                            tooltipFields.push({
+                                k: resolveDisplayName(additionalTooltipColIds[t]) || ("Attr " + (t + 1)),
+                                v: String(tooltipValue)
+                            });
                         }
-                    } catch (e) {
-                        task.colorCategory = "";
-                    }
+                    } catch (_) {}
                 }
 
-                // Extract measure value from VALUES (Physical.DATA) edge
-                task.measureValue = null;
+                var task = {
+                    rowIndex: r,
+                    title: taskTitle != null && String(taskTitle).trim() !== "" ? String(taskTitle) : "Untitled",
+                    subtitle1: subtitle1 != null ? String(subtitle1) : "",
+                    subtitle2: dateValue != null ? String(dateValue) : "",
+                    subtitle3: subtitle3 != null ? String(subtitle3) : "",
+                    bottomAttr: bottomAttr != null ? String(bottomAttr) : "",
+                    date: parsedDate,
+                    dateRaw: dateValue != null ? String(dateValue) : "",
+                    colorCategory: colorValue != null ? String(colorValue) : "",
+                    url: normalizeUrl(urlValue),
+                    conditionFlagRed: isPositiveFlag(redValue),
+                    conditionFlagYellow: isPositiveFlag(yellowValue),
+                    measureValue: null,
+                    tooltipFields: tooltipFields,
+                    displayNames: {
+                        title: titleDisplayName,
+                        subtitle1: subtitle1DisplayName,
+                        subtitle2: dateDisplayName,
+                        subtitle3: subtitle3DisplayName,
+                        bottomAttr: bottomAttrDisplayName,
+                        date: dateDisplayName,
+                        color: colorDisplayName
+                    }
+                };
+
                 try {
                     var measureVal = oDataLayout.getValue(datamodelshapes.Physical.DATA, r, 0);
                     if (measureVal !== null && measureVal !== undefined) {
                         task.measureValue = measureVal;
                     }
-                } catch (e) {
-                    // No measure value available
-                }
+                } catch (_) {}
 
-                // Extract tooltip columns
-                task.tooltips = [];
-                for (var t = 0; t < tooltipRoleColumns.length; t++) {
-                    try {
-                        var tooltipColId = tooltipRoleColumns[t];
-                        var tooltipLayerIdx = rowCols.indexOf(tooltipColId);
-                        if (tooltipLayerIdx >= 0) {
-                            var tooltipValue = oDataLayout.getValue(datamodelshapes.Physical.ROW, tooltipLayerIdx, r, false);
-                            if (tooltipValue) {
-                                task.tooltips.push(tooltipValue);
-                            }
-                        }
-                    } catch (e) {
-                        // Skip tooltip on error
-                    }
-                }
-
-                // Check first two tooltip columns for condition flags (like kanbanViz)
-                // 1st tooltip column: RED flag (deadline passed) - value = Y
-                // 2nd tooltip column: YELLOW flag (30 day warning) - value = Y
-                task.conditionFlagRed = false;
-                task.conditionFlagYellow = false;
-
-                if (task.tooltips.length >= 1) {
-                    var redVal = task.tooltips[0];
-                    if (redVal !== null && redVal !== undefined && String(redVal).trim() !== "") {
-                        var redValLower = String(redVal).trim().toLowerCase();
-                        // Check if value indicates "yes" (Y, Yes, D, Da, 1, TRUE, true)
-                        if (redValLower === 'y' || redValLower === 'yes' ||
-                            redValLower === 'd' || redValLower === 'da' ||
-                            redValLower === '1' || redValLower === 'true') {
-                            task.conditionFlagRed = true;
-                        }
-                    }
-                }
-
-                if (task.tooltips.length >= 2) {
-                    var yellowVal = task.tooltips[1];
-                    if (yellowVal !== null && yellowVal !== undefined && String(yellowVal).trim() !== "") {
-                        var yellowValLower = String(yellowVal).trim().toLowerCase();
-                        // Check if value indicates "yes" (Y, Yes, D, Da, 1, TRUE, true)
-                        if (yellowValLower === 'y' || yellowValLower === 'yes' ||
-                            yellowValLower === 'd' || yellowValLower === 'da' ||
-                            yellowValLower === '1' || yellowValLower === 'true') {
-                            task.conditionFlagYellow = true;
-                        }
-                    }
-                }
-
-                // Store row index for selection
-                task.rowIndex = r;
-
-                // Build tooltip HTML (like kanbanViz)
                 task.tooltipHtml = this._buildTooltipHtml(task);
-
                 tasks.push(task);
             }
 
@@ -962,7 +1297,6 @@ define([
      */
     CalendarVisualization.prototype._buildTooltipHtml = function(task) {
         var html = '';
-        var self = this;
 
         function escapeHtml(text) {
             if (!text) return '';
@@ -971,34 +1305,36 @@ define([
             return div.innerHTML;
         }
 
-        // ID
-        if (task.id) {
-            html += '<div class="ct-line"><span class="ct-k">ID:</span> <span class="ct-v">' + escapeHtml(task.id) + '</span></div>';
+        if (task.subtitle1) {
+            html += '<div class="ct-line"><span class="ct-k">' + escapeHtml(task.displayNames.subtitle1 || 'Info') + ':</span> <span class="ct-v">' + escapeHtml(task.subtitle1) + '</span></div>';
         }
 
-        // Task name (Title)
         if (task.title) {
-            html += '<div class="ct-line"><span class="ct-k">Naloga:</span> <span class="ct-v"><strong>' + escapeHtml(task.title) + '</strong></span></div>';
+            html += '<div class="ct-line"><span class="ct-k">' + escapeHtml(task.displayNames.title || 'Task') + ':</span> <span class="ct-v"><strong>' + escapeHtml(task.title) + '</strong></span></div>';
         }
 
-        // Date
         if (task.date) {
             var dateFormat = this._dateFormat || "yyyy-MM-dd";
             var dateDisplay = formatDate(task.date, dateFormat);
-            html += '<div class="ct-line"><span class="ct-k">Datum:</span> <span class="ct-v">' + escapeHtml(dateDisplay) + '</span></div>';
+            html += '<div class="ct-line"><span class="ct-k">' + escapeHtml(task.displayNames.date || 'Date') + ':</span> <span class="ct-v">' + escapeHtml(dateDisplay) + '</span></div>';
         }
 
-        // Color category (if present)
+        if (task.subtitle3) {
+            html += '<div class="ct-line"><span class="ct-k">' + escapeHtml(task.displayNames.subtitle3 || 'Info') + ':</span> <span class="ct-v">' + escapeHtml(task.subtitle3) + '</span></div>';
+        }
+
+        if (task.bottomAttr) {
+            html += '<div class="ct-line"><span class="ct-k">' + escapeHtml(task.displayNames.bottomAttr || 'Info') + ':</span> <span class="ct-v">' + escapeHtml(task.bottomAttr) + '</span></div>';
+        }
+
         if (task.colorCategory) {
-            html += '<div class="ct-line"><span class="ct-k">Status:</span> <span class="ct-v">' + escapeHtml(task.colorCategory) + '</span></div>';
+            html += '<div class="ct-line"><span class="ct-k">' + escapeHtml(task.displayNames.color || 'Color') + ':</span> <span class="ct-v">' + escapeHtml(task.colorCategory) + '</span></div>';
         }
 
-        // Additional tooltip columns (skip first 2 which are condition flags)
-        if (task.tooltips && task.tooltips.length > 2) {
-            for (var i = 2; i < task.tooltips.length; i++) {
-                if (task.tooltips[i] !== null && task.tooltips[i] !== undefined && String(task.tooltips[i]).trim() !== "") {
-                    html += '<div class="ct-line">' + escapeHtml(String(task.tooltips[i])) + '</div>';
-                }
+        if (task.tooltipFields && task.tooltipFields.length > 0) {
+            for (var i = 0; i < task.tooltipFields.length; i++) {
+                var field = task.tooltipFields[i];
+                html += '<div class="ct-line"><span class="ct-k">' + escapeHtml(field.k) + ':</span> <span class="ct-v">' + escapeHtml(field.v) + '</span></div>';
             }
         }
 
@@ -1327,6 +1663,10 @@ define([
             }
         }
 
+        Object.keys(grouped).forEach(function(dateKey) {
+            grouped[dateKey].sort(compareTasksForCardOrder);
+        });
+
         return grouped;
     };
 
@@ -1359,32 +1699,61 @@ define([
         }
 
         // Get stripe color from category (Color column)
-        var stripeColor = getColorForCategory(task.colorCategory);
+        var stripeColor = getColorForCategory(task.colorCategory) || "#cfcfcf";
 
-        // Format date for display using user's preferred format
-        var dateDisplay = "";
-        if (task.date) {
-            var dateFormat = this._dateFormat || "yyyy-MM-dd";
-            dateDisplay = formatDate(task.date, dateFormat);
-        }
+        var formatting = (this.getViewConfig() || {})[VIEW_CONFIG_KEY] || getDefaultFormattingOptions();
+        var attribute1AlignStyle = getTextAlignStyle(formatting.attribute1Alignment, 'center');
+        var attribute2AlignStyle = getFlexAlignStyle(formatting.attribute2Alignment, 'center');
+        var attribute3AlignStyle = getTextAlignStyle(formatting.attribute3Alignment, 'left');
+        var titleDecorationStyle = isFullyCompletedMeasure(task.measureValue, this._valueFormat)
+            ? 'text-decoration:line-through;'
+            : '';
+        var measureDisplay = (task.measureValue !== null && task.measureValue !== undefined && String(task.measureValue).trim() !== "")
+            ? formatMeasureValue(task.measureValue, this._valueFormat)
+            : "";
+        var dateDisplay = task.date
+            ? formatDate(task.date, this._dateFormat || "yyyy-MM-dd")
+            : (task.dateRaw || task.subtitle2 || "");
 
         var html = '<div class="calendar-task' + extraClass + '" data-row="' + task.rowIndex + '"' + styleAttr + '>';
+        html += '<div class="calendar-task-stripe" style="background-color:' + stripeColor + ';"></div>';
+        html += '<div class="calendar-task-content">';
+        html += '<div class="calendar-task-left">';
 
-        // Add color stripe on left edge if category exists
-        if (stripeColor) {
-            html += '<div class="calendar-task-stripe" style="background-color:' + stripeColor + ';"></div>';
+        html += '<table class="calendar-task-subtitle-table"><tr>';
+        html += task.subtitle1
+            ? '<td class="calendar-task-subtitle calendar-task-subtitle-left">' +
+                (task.url
+                    ? '<a class="calendar-task-title-link" href="' + this._escapeHtml(task.url) + '" target="_blank" rel="noopener noreferrer">ID: ' + this._escapeHtml(task.subtitle1) + '</a>'
+                    : 'ID: ' + this._escapeHtml(task.subtitle1)
+                ) +
+              '</td>'
+            : '<td></td>';
+        html += measureDisplay
+            ? '<td class="calendar-task-subtitle calendar-task-subtitle-center">(' + this._escapeHtml(measureDisplay) + ')</td>'
+            : '<td></td>';
+        html += dateDisplay
+            ? '<td class="calendar-task-subtitle calendar-task-subtitle-right">' + this._escapeHtml(dateDisplay) + '</td>'
+            : '<td></td>';
+        html += '</tr></table>';
+
+        html += '<div class="calendar-task-title" style="' + attribute1AlignStyle + titleDecorationStyle + '">';
+        html += this._escapeHtml(task.title);
+        html += '</div>';
+
+        html += '</div>'; // close calendar-task-left
+
+        if (task.subtitle3) {
+            html += '<div class="calendar-task-middle" style="' + attribute2AlignStyle + '">';
+            html += this._escapeHtml(task.subtitle3);
+            html += '</div>';
         }
 
-        // Card content container
-        html += '<div class="calendar-task-content">';
-
-        // Simplified format: (ID) Task Name in bold
-        // 1st column = task.id (ID)
-        // 2nd column = task.title (Task Name) - in bold
-        html += '<div class="calendar-task-simple">';
-        html += '(' + this._escapeHtml(task.id) + ') ';
-        html += '<strong>' + this._escapeHtml(task.title) + '</strong>';
-        html += '</div>';
+        if (task.bottomAttr) {
+            html += '<div class="calendar-task-bottom" style="' + attribute3AlignStyle + '">';
+            html += this._escapeHtml(task.bottomAttr);
+            html += '</div>';
+        }
 
         html += '</div>'; // close calendar-task-content
         html += '</div>'; // close calendar-task
@@ -1414,9 +1783,13 @@ define([
         container.off('change');
         container.off('mouseenter');
         container.off('mouseleave');
+        container.off('click', '.calendar-task-title-link');
 
         // Task selection handler (using jQuery to ensure proper cleanup)
         container.on('click', '.calendar-task', function(e) {
+            if ($(e.target).closest('.calendar-task-title-link').length) {
+                return;
+            }
             e.preventDefault();
             e.stopPropagation();
 
@@ -1442,6 +1815,10 @@ define([
             self._updateCardSelectionVisuals();
         });
 
+        container.on('click', '.calendar-task-title-link', function(e) {
+            e.stopPropagation();
+        });
+
         // Click outside calendar to clear selection
         container.on('click', function(e) {
             // Only clear if clicking on the container itself or calendar elements (not tasks)
@@ -1458,7 +1835,17 @@ define([
         // Tooltip handlers (using mousemove like kanbanViz for better positioning)
         var rootElem = this.getContainerElem();
         if (rootElem) {
-            rootElem.addEventListener('mousemove', function(e) {
+            if (this._boundRootElem && this._boundHandlers) {
+                if (this._boundHandlers.mousemove) this._boundRootElem.removeEventListener('mousemove', this._boundHandlers.mousemove);
+                if (this._boundHandlers.mouseleave) this._boundRootElem.removeEventListener('mouseleave', this._boundHandlers.mouseleave);
+                if (this._boundHandlers.mouseout) this._boundRootElem.removeEventListener('mouseout', this._boundHandlers.mouseout);
+                if (this._boundHandlers.scroll) this._boundRootElem.removeEventListener('scroll', this._boundHandlers.scroll);
+            }
+
+            this._boundHandlers = {};
+            this._boundRootElem = rootElem;
+
+            this._boundHandlers.mousemove = function(e) {
                 var taskCard = e.target.closest && e.target.closest('.calendar-task');
                 if (!taskCard) {
                     self._hideTooltip();
@@ -1487,22 +1874,26 @@ define([
                 }
 
                 self._showTooltip(task.tooltipHtml, e.clientX, e.clientY);
-            });
+            };
+            rootElem.addEventListener('mousemove', this._boundHandlers.mousemove);
 
-            rootElem.addEventListener('mouseleave', function() {
+            this._boundHandlers.mouseleave = function() {
                 self._hideTooltip();
-            });
+            };
+            rootElem.addEventListener('mouseleave', this._boundHandlers.mouseleave);
 
-            rootElem.addEventListener('mouseout', function(e) {
+            this._boundHandlers.mouseout = function(e) {
                 var to = e.relatedTarget;
                 if (!to || !rootElem.contains(to)) {
                     self._hideTooltip();
                 }
-            });
+            };
+            rootElem.addEventListener('mouseout', this._boundHandlers.mouseout);
 
-            rootElem.addEventListener('scroll', function() {
+            this._boundHandlers.scroll = function() {
                 self._hideTooltip();
-            }, { passive: true });
+            };
+            rootElem.addEventListener('scroll', this._boundHandlers.scroll, { passive: true });
         }
 
         // Month navigation buttons
@@ -1702,13 +2093,139 @@ define([
      * Cleanup on destroy
      */
     CalendarVisualization.prototype.destroy = function() {
-        $(window).off('resize');
+        $(window).off('resize.calendarViz');
+
+        if (this._boundRootElem && this._boundHandlers) {
+            var rootElem = this._boundRootElem;
+            if (this._boundHandlers.mousemove) rootElem.removeEventListener('mousemove', this._boundHandlers.mousemove);
+            if (this._boundHandlers.mouseleave) rootElem.removeEventListener('mouseleave', this._boundHandlers.mouseleave);
+            if (this._boundHandlers.mouseout) rootElem.removeEventListener('mouseout', this._boundHandlers.mouseout);
+            if (this._boundHandlers.scroll) rootElem.removeEventListener('scroll', this._boundHandlers.scroll);
+            this._boundRootElem = null;
+            this._boundHandlers = null;
+        }
 
         if (this._tooltipElement && this._tooltipElement.parentNode) {
             this._tooltipElement.parentNode.removeChild(this._tooltipElement);
         }
 
-        CalendarVisualization.superclass.destroy.call(this);
+        CalendarVisualization.superClass.destroy.call(this);
+    };
+
+    CalendarVisualization.prototype._handlePropChange = function(sGadgetID, oPropChange, oViewSettings, oActionContext) {
+        var conf = oViewSettings.getViewConfigJSON(dataviz.SettingsNS.CHART) || {};
+        var formatting = conf[VIEW_CONFIG_KEY] || getDefaultFormattingOptions();
+        var bUpdateSettings = CalendarVisualization.superClass._handlePropChange.call(this, sGadgetID, oPropChange, oViewSettings, oActionContext);
+
+        if (sGadgetID === 'valueFormat') {
+            formatting.valueFormat = oPropChange.value;
+            conf[VIEW_CONFIG_KEY] = formatting;
+            oViewSettings.setViewConfigJSON(dataviz.SettingsNS.CHART, conf);
+            bUpdateSettings = true;
+        }
+
+        if (sGadgetID === 'attribute1Alignment' || sGadgetID === 'attribute2Alignment' || sGadgetID === 'attribute3Alignment') {
+            formatting[sGadgetID] = oPropChange.value;
+            conf[VIEW_CONFIG_KEY] = formatting;
+            oViewSettings.setViewConfigJSON(dataviz.SettingsNS.CHART, conf);
+            bUpdateSettings = true;
+        }
+
+        return bUpdateSettings;
+    };
+
+    CalendarVisualization.prototype._addVizSpecificPropsDialog = function(oTabbedPanelsGadgetInfo) {
+        CalendarVisualization.superClass._addVizSpecificPropsDialog.call(this, oTabbedPanelsGadgetInfo);
+        this.doAddVizSpecificPropsDialog(this, oTabbedPanelsGadgetInfo);
+    };
+
+    CalendarVisualization.prototype.doAddVizSpecificPropsDialog = function(oTransientRenderingContext, oTabbedPanelsGadgetInfo) {
+        jsx.assertObject(oTransientRenderingContext, "oTransientRenderingContext");
+        jsx.assertInstanceOf(oTabbedPanelsGadgetInfo, gadgets.TabbedPanelsGadgetInfo, "oTabbedPanelsGadgetInfo", "obitech-application/gadgets.TabbedPanelsGadgetInfo");
+
+        var options = this._fillDefaultOptions(this.getViewConfig() || {});
+        var formatting = options[VIEW_CONFIG_KEY] || getDefaultFormattingOptions();
+        var generalPanel = gadgetdialog.forcePanelByID(oTabbedPanelsGadgetInfo, euidef.GD_PANEL_ID_GENERAL);
+        generalPanel.setBodyCSSClass("bi_gadgets_no_cell_separator");
+        var nOrder = euidef.GD_FIELD_ORDER_GENERAL_VIZ_SPECIFIC;
+
+        var valueFormatOptions = [
+            new gadgets.OptionInfo('auto', 'Auto'),
+            new gadgets.OptionInfo('#,##0', '#,##0'),
+            new gadgets.OptionInfo('#,##0.00', '#,##0.00'),
+            new gadgets.OptionInfo('currency', 'Currency'),
+            new gadgets.OptionInfo('percent', 'Percent')
+        ];
+        var alignmentOptions = [
+            new gadgets.OptionInfo('left', 'Left'),
+            new gadgets.OptionInfo('center', 'Center'),
+            new gadgets.OptionInfo('right', 'Right')
+        ];
+
+        nOrder += 1;
+        var valueFormatInfo = new gadgets.TextSwitcherGadgetInfo(
+            'valueFormat',
+            'Value Format',
+            'Value Format',
+            new gadgets.GadgetValueProperties(euidef.GadgetTypeIDs.TEXT_SWITCHER, formatting.valueFormat),
+            nOrder,
+            null,
+            valueFormatOptions
+        );
+        valueFormatInfo.setGroupName('calendarviz_props');
+        generalPanel.addChild(valueFormatInfo);
+
+        nOrder += 1;
+        var attribute1AlignmentInfo = new gadgets.TextSwitcherGadgetInfo(
+            'attribute1Alignment',
+            'Attribute 1: Alignement',
+            'Attribute 1: Alignement',
+            new gadgets.GadgetValueProperties(euidef.GadgetTypeIDs.TEXT_SWITCHER, formatting.attribute1Alignment),
+            nOrder,
+            null,
+            alignmentOptions
+        );
+        attribute1AlignmentInfo.setGroupName('calendarviz_props');
+        generalPanel.addChild(attribute1AlignmentInfo);
+
+        nOrder += 1;
+        var attribute2AlignmentInfo = new gadgets.TextSwitcherGadgetInfo(
+            'attribute2Alignment',
+            'Attribute 2: Alignement',
+            'Attribute 2: Alignement',
+            new gadgets.GadgetValueProperties(euidef.GadgetTypeIDs.TEXT_SWITCHER, formatting.attribute2Alignment),
+            nOrder,
+            null,
+            alignmentOptions
+        );
+        attribute2AlignmentInfo.setGroupName('calendarviz_props');
+        generalPanel.addChild(attribute2AlignmentInfo);
+
+        nOrder += 1;
+        var attribute3AlignmentInfo = new gadgets.TextSwitcherGadgetInfo(
+            'attribute3Alignment',
+            'Attribute 3: Alignement',
+            'Attribute 3: Alignement',
+            new gadgets.GadgetValueProperties(euidef.GadgetTypeIDs.TEXT_SWITCHER, formatting.attribute3Alignment),
+            nOrder,
+            null,
+            alignmentOptions
+        );
+        attribute3AlignmentInfo.setGroupName('calendarviz_props');
+        generalPanel.addChild(attribute3AlignmentInfo);
+
+        if (CalendarVisualization.superClass.doAddVizSpecificPropsDialog) {
+            CalendarVisualization.superClass.doAddVizSpecificPropsDialog.apply(this, arguments);
+        }
+    };
+
+    // Compatibility aliases for OAC builds that look for non-underscored hooks.
+    CalendarVisualization.prototype.handlePropChange = function() {
+        return this._handlePropChange.apply(this, arguments);
+    };
+
+    CalendarVisualization.prototype.addVizSpecificPropsDialog = function() {
+        return this._addVizSpecificPropsDialog.apply(this, arguments);
     };
 
     /**

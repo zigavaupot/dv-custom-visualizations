@@ -5,6 +5,8 @@ define({
   "CALENDARVIZ_CATEGORY": "CalendarViz dodatak",
   "CALENDARVIZ_ROW": "Zadatak",
   "CALENDARVIZ_COLOR": "Boja",
+  "CALENDARVIZ_CONDITIONAL_FORMATTING": "Conditional Formatting",
+  "CALENDARVIZ_URL": "URL",
   "CALENDARVIZ_TOOLTIP": "Opis",
 
   // UI Labels

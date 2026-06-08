@@ -6,6 +6,8 @@ define({
   "KANBANVIZ_ROW": "Zadatak",
   "KANBANVIZ_MEASURE": "Dovršenost %",
   "KANBANVIZ_COLOR": "Boja",
+  "KANBANVIZ_CONDITIONAL_FORMATTING": "Conditional Formatting",
+  "KANBANVIZ_URL": "URL",
   "KANBANVIZ_TOOLTIP": "Opis",
 
   // UI Labels

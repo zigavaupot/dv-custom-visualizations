@@ -8,6 +8,8 @@ define({
   "CALENDARVIZ_CATEGORY": "CalendarViz vtičnik",
   "CALENDARVIZ_ROW": "Naloga",
   "CALENDARVIZ_COLOR": "Barva",
+  "CALENDARVIZ_CONDITIONAL_FORMATTING": "Conditional Formatting",
+  "CALENDARVIZ_URL": "URL",
   "CALENDARVIZ_TOOLTIP": "Namig",
 
   // UI Labels

@@ -32,18 +32,22 @@ define([
    * Tell Oracle DV how logical roles map to the physical data edges.
    *
    * DATA LAYOUT STRUCTURE:
-   * - ROW edge: Task name (layer 0), Date (layer 1), Additional details (layers 2-3), Color (layer 4), Tooltip columns (layers 5+)
+   * - ROW edge: Task/title columns, Color column, Conditional Formatting columns, URL column, Tooltip columns
    * - DATA edge: Optional measures
    *
    * GRAMMAR PLACEHOLDERS:
-   * - Rows: 1st: Task name, 2nd: Date (Rok izvedbe), 3rd-4th: Additional details (optional)
+   * - Rows: 1st: Task title, 2nd: subtitle left, 3rd: date (calendar placement), 4th: middle text, 5th: bottom text
    * - Color: Category for color-coding tasks (0-1 categorical column)
+   * - Shape (Conditional Formatting): up to 2 condition flags (RED, YELLOW)
+   * - Size (URL): optional hidden hyperlink target
    * - Tooltip: Additional information (0-5 categorical columns)
    * - Values: Optional numeric values (0-1 measure)
    *
-   * Logical.ROW      -> Physical.ROW (layers 0-3: task name, date, details)
-   * Logical.COLOR    -> Physical.ROW (layer 4: color category)
-   * Logical.TOOLTIP  -> Physical.ROW (layers 5+: tooltip attributes)
+   * Logical.ROW      -> Physical.ROW
+   * Logical.COLOR    -> Physical.ROW
+   * Logical.GLYPH    -> Physical.ROW
+   * Logical.SIZE     -> Physical.ROW
+   * Logical.TOOLTIP  -> Physical.ROW
    * Logical.MEASURES -> Physical.DATA (optional measures)
    */
   CalendarVizDataModelHandler.prototype.getLogicalMapper = function () {
@@ -53,13 +57,16 @@ define([
     var mapper = new vdm.Mapper();
 
     // ROW logical -> ROW physical
-    // Layer 0: Task name
-    // Layer 1: Date (Rok izvedbe) - the date when task should appear on calendar
-    // Layer 2-3: Additional details (optional)
     mapper.addCategoricalMapping(datamodelshapes.Logical.ROW, physRow);
 
     // COLOR logical -> ROW physical (color category for task stripe)
     mapper.addCategoricalMapping(datamodelshapes.Logical.COLOR, physRow);
+
+    // GLYPH logical -> ROW physical (conditional formatting flags)
+    mapper.addCategoricalMapping(datamodelshapes.Logical.GLYPH, physRow);
+
+    // SIZE logical -> ROW physical (hidden URL target)
+    mapper.addCategoricalMapping(datamodelshapes.Logical.SIZE, physRow);
 
     // TOOLTIP logical -> ROW physical (additional information)
     mapper.addCategoricalMapping(datamodelshapes.Logical.TOOLTIP, physRow);

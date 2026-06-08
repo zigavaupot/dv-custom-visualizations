@@ -1,0 +1,809 @@
+/* ===================================================================
+   Adjusted Pivot Viz – styles
+   Aligned with OAC / Oracle JET Redwood Pivot table look & feel.
+
+   Key design tokens used:
+     Font   : "Oracle Sans", "Helvetica Neue", Helvetica, Arial, sans-serif
+     Text   : #161616
+     Header : #f5f5f5 bg  /  #595959 secondary text
+     Border : #d6dce3
+     Blue   : #1b6dbe  (Oracle brand / selection accent)
+     Hover  : #eef3fc
+     Select : #d9ecff
+   =================================================================== */
+
+/* ---- OUTER WRAPPER ---- */
+.pivot-wrapper {
+  width: fit-content;
+  max-width: 100%;
+  min-width: 0;
+  height: auto;
+  max-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: block;
+  box-sizing: border-box;
+  font-family: "Oracle Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #202020;
+  background: #f5f5f5;
+}
+
+.pivot-wrapper.pivot-overflow-x {
+  overflow-x: auto;
+}
+
+/* ---- TABLE ---- */
+.pivot-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content;
+  min-width: 0;
+  table-layout: fixed;
+  background: #f5f5f5;
+  border: 1px solid #d0d0d0;
+}
+
+/* ---- HEADER CELLS (shared base) ---- */
+.pivot-th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 18px;
+  padding: 4px 4px;
+  white-space: nowrap;
+  border-right: 1px solid #d0d0d0;
+  border-bottom: 1px solid #d0d0d0;
+  background: #f3f3f3;
+  color: #202020;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Top-left corner block: row-dimension name headers */
+.pivot-th-row {
+  position: sticky;
+  left: 0;
+  z-index: 20;           /* above column headers */
+  text-align: left;
+  background: #f3f3f3;
+  border-left: 1px solid #d0d0d0;
+  border-right: 1px solid #d0d0d0;
+}
+
+.pivot-th-row::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: #d0d0d0;
+  pointer-events: none;
+}
+
+.pivot-th-row::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  bottom: -1px;
+  width: 1px;
+  background: #d0d0d0;
+  pointer-events: none;
+}
+
+.pivot-th-row-filler {
+  z-index: 19;
+}
+
+.pivot-th-row-filler .pivot-th-label {
+  padding-right: 0;
+}
+
+/* Column-dimension value headers */
+.pivot-th-col {
+  background: #f3f3f3;
+  text-align: center;
+}
+
+/* Level-1 group header (multi-level columns) */
+.pivot-th-level1 {
+  background: #f3f3f3;
+  border-bottom: 1px solid #d0d0d0;
+}
+
+.pivot-th-level1::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  height: 2px;
+  background: #d0d0d0;
+  pointer-events: none;
+}
+
+.pivot-th-topspacer {
+  background: #f3f3f3;
+}
+
+/* Level-2 header */
+.pivot-th-level2 {
+  background: #f3f3f3;
+}
+
+.pivot-th-level2::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  height: 2px;
+  background: #d0d0d0;
+  pointer-events: none;
+}
+
+/* Value sub-header (when multiple value columns per cell) */
+.pivot-th-val {
+  background: #f5f5f5;
+  font-weight: 600;
+  font-size: 10px;
+  color: #595959;
+  border-top: 1px solid #d6dce3;
+}
+
+/* ---- DATA ROWS ---- */
+.pivot-data-row {
+  /* no transition needed; matches OAC's instant highlight */
+}
+
+/* Very subtle alternating shade – matches OAC's faint zebra */
+.pivot-banded-rows .pivot-row-odd td.pivot-td-cell,
+.pivot-banded-rows .pivot-row-odd td.pivot-td-empty {
+  background: #fafafa !important;
+}
+
+.pivot-banded-rows .pivot-row-odd td.pivot-td-row,
+.pivot-banded-rows .pivot-row-odd td.pivot-td-row-last {
+  background: #f0f0f0 !important;
+}
+
+/* Hover – OAC light blue tint */
+.pivot-data-row:hover td.pivot-td-cell:not(.pivot-td-colored),
+.pivot-data-row:hover td.pivot-td-empty {
+  background: #f7f7f7 !important;
+  cursor: pointer;
+}
+
+.pivot-data-row:hover td.pivot-td-cell {
+  box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.18);
+}
+
+/* Row selection – OAC blue selection */
+.pivot-row-selected td.pivot-td-cell,
+.pivot-row-selected td.pivot-td-empty,
+.pivot-row-selected td.pivot-td-row,
+.pivot-row-selected td.pivot-td-row-last {
+  background: inherit !important;
+}
+
+.pivot-row-selected td.pivot-td-row {
+  border-left: 1px solid #d6dce3;
+}
+
+.pivot-td-cell.pivot-cell-selected,
+.pivot-td-empty.pivot-cell-selected {
+  box-shadow: inset 0 0 0 2px #1b6dbe !important;
+}
+
+/* ---- BODY CELLS ---- */
+
+/* Sticky row-dimension label cells */
+.pivot-td-row {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: #f5f5f5;
+  font-weight: 400;
+  font-size: 11px;
+  padding: 4px 6px;
+  border-left: 1px solid #d0d0d0;
+  border-right: 1px solid #d0d0d0;
+  border-bottom: 1px solid #d0d0d0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  color: #202020;
+  box-sizing: border-box;
+}
+
+.pivot-td-row-label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: inherit;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.pivot-td-row::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: #d0d0d0;
+  pointer-events: none;
+}
+
+.pivot-td-row::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  bottom: -1px;
+  width: 1px;
+  background: #d0d0d0;
+  pointer-events: none;
+}
+
+/* Last row-dim column: stronger right border separates it from data area */
+.pivot-td-row-last {
+  border-right: 1px solid #d0d0d0;
+}
+
+.pivot-unfixed-headers .pivot-th,
+.pivot-unfixed-headers .pivot-th-row,
+.pivot-unfixed-headers .pivot-td-row {
+  position: static;
+}
+
+.pivot-unfixed-headers .pivot-th-row::before,
+.pivot-unfixed-headers .pivot-th-row::after,
+.pivot-unfixed-headers .pivot-td-row::before,
+.pivot-unfixed-headers .pivot-td-row::after,
+.pivot-unfixed-headers .pivot-th-level1::after,
+.pivot-unfixed-headers .pivot-th-level2::after {
+  display: none;
+}
+
+/* Data / value cells */
+.pivot-td-cell {
+  font-size: 11px;
+  line-height: 18px;
+  padding: 4px 4px;
+  border-right: 1px solid #d0d0d0;
+  border-bottom: 1px solid #d0d0d0;
+  text-align: center;
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: normal;
+  word-break: normal;
+  overflow: hidden;
+  color: #202020;
+  background: #ffffff !important;
+  box-sizing: border-box;
+}
+
+.pivot-td-colored {
+}
+
+/* Numeric measure displayed beneath the categorical value in a cell */
+.pivot-cell-measure {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: #202020;
+  margin-top: 1px;
+  line-height: 18px;
+  padding: 0;
+  border-radius: 0;
+}
+
+.pivot-td-colored .pivot-cell-measure {
+  color: inherit !important;
+}
+
+.pivot-td-metric-colored .pivot-cell-measure {
+  color: inherit !important;
+}
+
+/* Empty intersection – plain white, barely-visible border */
+.pivot-td-empty {
+  background: #ffffff !important;
+  color: transparent;
+  border-color: #d0d0d0;
+}
+
+/* Sub-row separator: dashed line between multiple values at same intersection */
+.pivot-sub-row td.pivot-td-cell,
+.pivot-sub-row td.pivot-td-empty {
+  border-top: 0;
+}
+
+.pivot-col-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 60;
+  pointer-events: auto;
+}
+
+.pivot-col-resizer::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  right: 1px;
+  width: 1px;
+  background: transparent;
+}
+
+.pivot-th:hover .pivot-col-resizer::after,
+.pivot-resizing .pivot-col-resizer::after {
+  background: #b3b3b3;
+}
+
+/* ---- SORT INDICATORS ---- */
+.pivot-th-label {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+  box-sizing: border-box;
+  padding-right: 14px;
+}
+
+.pivot-wrap-on .pivot-th-label {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: clip;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.pivot-wrap-on .pivot-td-row {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: clip;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.pivot-wrap-on .pivot-td-cell {
+  white-space: pre-wrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.pivot-wrap-off .pivot-th-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pivot-wrap-off .pivot-td-row {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pivot-wrap-off .pivot-td-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pivot-wrap-auto .pivot-th-label {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: clip;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.pivot-wrap-auto .pivot-td-row {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: clip;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.pivot-wrap-auto .pivot-td-cell {
+  white-space: pre-wrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.pivot-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  position: relative;
+  flex: 0 0 auto;
+  vertical-align: middle;
+  color: inherit;
+  pointer-events: none;
+}
+
+.pivot-sort-arrow {
+  font-size: 8px;
+  line-height: 1;
+  color: #1b6dbe !important;
+}
+
+.pivot-sort-idle {
+  color: transparent;
+}
+
+.pivot-th-sortable:hover .pivot-sort-idle {
+  color: #b3b3b3;
+}
+
+.pivot-sort-order {
+  align-self: flex-start;
+  min-width: 8px;
+  font-size: 8px;
+  line-height: 1;
+  color: #595959;
+  font-weight: 700;
+  margin-left: 0;
+  transform: translateY(-3px);
+}
+
+.pivot-sort-toolbar-wrap {
+  display: inline-block;
+  min-width: 100%;
+  position: relative;
+  z-index: 40;
+  box-sizing: border-box;
+}
+
+.pivot-sort-toolbar-toggle-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 0 6px;
+  background: #f7f7f7;
+  border: 1px solid #d0d0d0;
+  border-bottom: 0;
+  position: relative;
+  z-index: 41;
+  box-sizing: border-box;
+}
+
+.pivot-sort-toolbar-toggle {
+  padding: 2px 7px;
+  border: 0;
+  background: transparent;
+  color: #8a8a8a;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  position: relative;
+  z-index: 42;
+}
+
+.pivot-sort-toolbar-toggle:hover {
+  color: #595959;
+}
+
+.pivot-export-xlsx {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 2px 8px 2px 5px;
+  border: 1px solid #c7c7c7;
+  border-radius: 3px;
+  background: #ffffff;
+  color: #202020;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  line-height: 16px;
+  box-sizing: border-box;
+}
+
+.pivot-export-xlsx:hover {
+  background: #f0f4f8;
+  border-color: #a8b6c4;
+}
+
+.pivot-export-xlsx:active {
+  background: #e6edf5;
+}
+
+.pivot-export-xlsx-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: #1c6335;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pivot-export-xlsx-label {
+  white-space: nowrap;
+}
+
+.pivot-unfix-headers-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 22px;
+  padding: 1px 4px;
+  color: #202020;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pivot-unfix-headers-toggle {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.pivot-unfix-headers-label {
+  white-space: nowrap;
+}
+
+.pivot-sort-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  padding: 8px 10px;
+  border: 1px solid #d0d0d0;
+  border-bottom: 0;
+  background: #f7f7f7;
+  position: relative;
+  z-index: 41;
+  box-sizing: border-box;
+}
+
+.pivot-sort-toolbar-collapsed .pivot-sort-toolbar {
+  display: none;
+}
+
+.pivot-sort-toolbar-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.pivot-sort-row {
+  display: block;
+  width: 100%;
+}
+
+.pivot-sort-help {
+  font-size: 11px;
+  color: #595959;
+}
+
+.pivot-sort-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+}
+
+.pivot-sort-group-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #595959;
+  margin-right: 8px;
+  min-width: 56px;
+}
+
+.pivot-sort-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #d0d0d0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #202020;
+}
+
+.pivot-sort-control:hover {
+  background: #f0f4f8;
+}
+
+.pivot-sort-control-active {
+  background: #e6e6e6 !important;
+  border-color: #b8b8b8 !important;
+}
+
+.pivot-sort-control-active:hover {
+  background: #dddddd;
+}
+
+.pivot-sort-control-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.pivot-sort-control-label {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.pivot-sort-dir {
+  padding: 2px 6px;
+  border: 0;
+  border-left: 1px solid #d0d0d0;
+  background: transparent;
+  color: #595959;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.pivot-sort-dir:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.pivot-sort-dir-active {
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #202020 !important;
+  font-weight: 600 !important;
+}
+
+.pivot-sort-clear {
+  padding: 3px 8px;
+  border: 1px solid #d0d0d0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #202020;
+  cursor: pointer;
+  font: inherit;
+}
+
+.pivot-sort-clear:hover {
+  background: #f0f4f8;
+}
+
+.pivot-align-left .pivot-td-cell {
+  text-align: left;
+}
+
+.pivot-align-center .pivot-td-cell {
+  text-align: center;
+}
+
+.pivot-align-right .pivot-td-cell {
+  text-align: right;
+}
+
+.pivot-hide-values .pivot-cell-measure,
+.pivot-hide-values .pivot-td-cell {
+  color: transparent;
+}
+
+.pivot-density-compact .pivot-th {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.pivot-density-compact .pivot-td-row,
+.pivot-density-compact .pivot-td-cell {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.pivot-density-comfortable .pivot-th {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.pivot-density-comfortable .pivot-td-row,
+.pivot-density-comfortable .pivot-td-cell {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* ---- EMPTY / ERROR STATES ---- */
+.pivot-empty,
+.pivot-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 120px;
+  font-size: 12px;
+  color: #595959;
+  padding: 20px;
+  text-align: center;
+  font-family: "Oracle Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.pivot-error {
+  color: #c10000;
+}
+
+/* ---- TOOLTIP ---- */
+.pivot-tooltip {
+  position: fixed;
+  z-index: 99999;
+  max-width: 320px;
+  background: #fff;
+  border: 1px solid #d6dce3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  border-radius: 3px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: "Oracle Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  line-height: 18px;
+  color: #161616;
+  pointer-events: none;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.pivot-tooltip.visible {
+  display: block;
+  opacity: 1;
+}
+
+.pivot-tooltip .pt-line {
+  display: block;
+  margin: 1px 0;
+}
+
+.pivot-tooltip .pt-k {
+  font-weight: 600;
+  margin-right: 4px;
+  color: #595959;
+}
+
+.pivot-tooltip .pt-v {
+  word-break: break-word;
+}
+
+.pivot-tooltip-value {
+  font-weight: 600;
+  color: #1b6dbe;
+}
+
+.pivot-tooltip hr.pt-sep {
+  border: none;
+  border-top: 1px solid #d6dce3;
+  margin: 4px 0;
+}

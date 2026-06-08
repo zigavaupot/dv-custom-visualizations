@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attribute Pivot Viz – Preview</title>
+  <style>
+    /* ===== Copied from attributePivotVizstyles.css ===== */
+    body { margin: 0; padding: 16px; background: #f4f6fa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    h2 { font-size: 15px; color: #333; margin: 0 0 6px; }
+    .scenario { background: #fff; border: 1px solid #d8dde8; border-radius: 8px; padding: 14px 16px; margin-bottom: 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .scenario h3 { font-size: 13px; color: #555; margin: 0 0 10px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
+    .note { font-size: 11px; color: #888; margin-bottom: 10px; }
+
+    .pivot-wrapper { width: 100%; overflow: auto; box-sizing: border-box; padding: 0; font-family: "Oracle Sans","Helvetica Neue",Helvetica,Arial,sans-serif; font-size: 12px; color: #161616; background: #fff; }
+    .pivot-table { border-collapse: collapse; width: auto; min-width: 100%; table-layout: auto; background: #fff; border: 1px solid #d6dce3; }
+    .pivot-th { position: sticky; top: 0; z-index: 10; font-size: 11px; font-weight: 700; line-height: 16px; padding: 5px 8px; white-space: nowrap; border: 1px solid #d6dce3; background: #f5f5f5; color: #161616; text-align: center; }
+    .pivot-th-row { position: sticky; left: 0; z-index: 20; text-align: left; background: #f0f0f0; border-right: 2px solid #c2c8d0; min-width: 80px; max-width: 220px; }
+    .pivot-th-col { background: #f5f5f5; text-align: center; min-width: 80px; }
+    .pivot-th-level1 { background: #ebebeb; border-bottom: 2px solid #c2c8d0; }
+    .pivot-th-level2 { background: #f5f5f5; }
+    .pivot-th-val { background: #f5f5f5; font-weight: 600; font-size: 10px; color: #595959; border-top: 1px solid #d6dce3; }
+    .pivot-data-row { }
+    .pivot-row-odd td.pivot-td-cell, .pivot-row-odd td.pivot-td-empty { background: #fafafa; }
+    .pivot-data-row:hover td.pivot-td-cell:not(.pivot-td-colored), .pivot-data-row:hover td.pivot-td-empty { background: #f5f9ff !important; cursor: pointer; }
+    .pivot-data-row:hover td.pivot-td-cell { box-shadow: inset 0 0 0 1px rgba(27,109,190,0.25); }
+    .pivot-row-selected td.pivot-td-cell, .pivot-row-selected td.pivot-td-empty, .pivot-row-selected td.pivot-td-row, .pivot-row-selected td.pivot-td-row-last { background: inherit !important; }
+    .pivot-row-selected td.pivot-td-row { border-left: 1px solid #d6dce3; }
+    .pivot-td-cell.pivot-cell-selected, .pivot-td-empty.pivot-cell-selected { box-shadow: inset 0 0 0 2px #1b6dbe !important; }
+    .pivot-td-row { position: sticky; left: 0; z-index: 5; background: #f5f5f5; font-weight: 700; font-size: 11px; padding: 4px 8px; border: 1px solid #d6dce3; border-right: 1px solid #c2c8d0; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: top; color: #161616; }
+    .pivot-td-row-last { border-right: 2px solid #c2c8d0; }
+    .pivot-td-cell { font-size: 12px; line-height: 16px; padding: 4px 8px; border: 1px solid #d6dce3; text-align: left; vertical-align: top; white-space: pre-wrap; word-break: break-word; max-width: 240px; color: #161616; background: #fff; }
+    .pivot-td-colored { font-weight: 600; }
+    .pivot-td-empty { background: #fff !important; color: transparent; border-color: #e8ecf0; }
+    .pivot-sub-row td.pivot-td-cell, .pivot-sub-row td.pivot-td-empty { border-top: 1px dashed #c2c8d0; }
+    /* NEW: numeric measure displayed inside intersection cell */
+    .pivot-cell-measure { display: block; font-size: 11px; font-weight: 600; color: #1b6dbe; margin-top: 2px; line-height: 14px; }
+    /* ===== end of styles ===== */
+
+    .badge { display: inline-block; background: #e4eaf8; color: #3a6fd8; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+    .badge-new { background: #e6f4ea; color: #2d7a3a; }
+  </style>
+</head>
+<body>
+<h2>Attribute Pivot Viz — Rendering Preview</h2>
+<p style="font-size:12px;color:#666;margin:0 0 18px;">
+  Static preview demonstrating the pivot rendering logic including the new optional numeric Measure slot.
+  The actual plugin runs inside Oracle Analytics Cloud.
+</p>
+
+<!-- SCENARIO 1: Basic pivot with categorical values only -->
+<div class="scenario">
+  <h3>Scenario 1 — Basic: 1 Row dim × 1 Column dim, categorical values <span class="badge">multi-value sub-rows</span></h3>
+  <p class="note">
+    Data columns: <b>Region</b> (Rows) | <b>Quarter</b> (Columns) | <b>Project Status</b> (Values)<br>
+    No Measure slot used — behaviour unchanged.
+  </p>
+  <div class="pivot-wrapper" id="scenario1"></div>
+</div>
+
+<!-- SCENARIO 2: Categorical values + numeric measure in same cell -->
+<div class="scenario">
+  <h3>Scenario 2 — Categorical value <em>+</em> numeric Measure <span class="badge badge-new">NEW: Measure slot</span></h3>
+  <p class="note">
+    Data columns: <b>Region</b> (Rows) | <b>Quarter</b> (Columns) | <b>Project Status</b> (Values) | <b>Revenue ($k)</b> (Measure)<br>
+    The numeric measure appears in blue below the categorical value. No binning occurs.
+  </p>
+  <div class="pivot-wrapper" id="scenario2"></div>
+</div>
+
+<!-- SCENARIO 3: Measure only, no categorical value column -->
+<div class="scenario">
+  <h3>Scenario 3 — Measure only (no categorical Values) <span class="badge badge-new">NEW: Measure slot</span></h3>
+  <p class="note">
+    Data columns: <b>Product</b> (Rows) | <b>Region</b> (Columns) | <b>Units Sold</b> (Measure)<br>
+    When there's no categorical Values column, the measure fills the cell on its own.
+  </p>
+  <div class="pivot-wrapper" id="scenario3"></div>
+</div>
+
+<!-- SCENARIO 4: Two value columns + measure -->
+<div class="scenario">
+  <h3>Scenario 4 — Two value columns + Measure <span class="badge">multi-val columns</span> <span class="badge badge-new">NEW</span></h3>
+  <p class="note">
+    Data columns: <b>Product</b> (Rows) | <b>Region</b> (Columns) | <b>Status</b> + <b>Owner</b> (Values) | <b>Budget ($k)</b> (Measure)<br>
+    Measure appears in the last value column's cell only.
+  </p>
+  <div class="pivot-wrapper" id="scenario4"></div>
+</div>
+
+<script>
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function hasNonEmptyItem(arr) {
+  if (!arr || !arr.length) return false;
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] !== '') return true;
+  }
+  return false;
+}
+
+function getDisplayValueOrder(numVals) {
+  var order = [];
+  for (var i = numVals - 1; i >= 0; i--) order.push(i);
+  return order;
+}
+
+function buildDisplayEntriesForCell(cellEntries, numVals) {
+  if (!cellEntries || !cellEntries.length) return [];
+
+  var valueOrder = getDisplayValueOrder(numVals);
+  var displayEntries = [];
+
+  for (var i = 0; i < cellEntries.length; i++) {
+    var entry = cellEntries[i];
+    var vals = entry && entry.vals ? entry.vals : [];
+    var hasMeasureOnly = !hasNonEmptyItem(vals) && hasNonEmptyItem(entry ? entry.measureVals : null);
+    var placed = false;
+
+    for (var rowIdx = 0; rowIdx < valueOrder.length; rowIdx++) {
+      var valueIdx = valueOrder[rowIdx];
+      var hasValueAtIdx = vals.length > valueIdx && vals[valueIdx] !== '';
+      if ((!hasValueAtIdx && !(hasMeasureOnly && rowIdx === 0)) || displayEntries[rowIdx]) continue;
+
+      displayEntries[rowIdx] = {
+        entry: entry,
+        valueIdx: hasValueAtIdx ? valueIdx : -1
+      };
+      placed = true;
+      break;
+    }
+
+    if (!placed) {
+      var fallbackValueIdx = -1;
+      for (var oi = 0; oi < valueOrder.length; oi++) {
+        var candidateIdx = valueOrder[oi];
+        if (vals.length > candidateIdx && vals[candidateIdx] !== '') {
+          fallbackValueIdx = candidateIdx;
+          break;
+        }
+      }
+      displayEntries.push({
+        entry: entry,
+        valueIdx: fallbackValueIdx
+      });
+    }
+  }
+
+  return displayEntries;
+}
+
+// Mirrors the updated renderPivotTable in attributePivotViz.js
+function renderPivotTable(pivotData) {
+  var rowKeys     = pivotData.rowKeys;
+  var colKeys     = pivotData.colKeys;
+  var cellMap     = pivotData.displayCellMap || pivotData.cellMap;
+  var rowLabels   = pivotData.rowLabels;
+  var colLabels   = pivotData.colLabels;
+  var rowDimNames = pivotData.rowDimNames;
+  var colDimNames = pivotData.colDimNames;
+  var valNames    = pivotData.valNames;
+  var measureNames = pivotData.measureNames || [];
+
+  var numRowDims  = rowDimNames.length;
+  var numColDims  = colDimNames.length;
+  var numVals     = valNames.length || 1;
+  var numCols     = colKeys.length;
+  var numMeasures = measureNames.length;
+
+  var html = '<table class="pivot-table"><thead>';
+
+  if (numColDims <= 1) {
+    html += '<tr>';
+    for (var d = 0; d < numRowDims; d++) {
+      html += '<th class="pivot-th pivot-th-row">' + escapeHtml(rowDimNames[d]) + '</th>';
+    }
+    for (var c = 0; c < numCols; c++) {
+      var lbl = colLabels[colKeys[c]] ? colLabels[colKeys[c]].join(' / ') : colKeys[c];
+      html += '<th class="pivot-th pivot-th-col">' + escapeHtml(lbl) + '</th>';
+    }
+    html += '</tr>';
+  } else {
+    var headerRows = numColDims;
+    html += '<tr>';
+    for (var d = 0; d < numRowDims; d++)
+      html += '<th class="pivot-th pivot-th-row" rowspan="' + headerRows + '">' + escapeHtml(rowDimNames[d]) + '</th>';
+    var level0Groups = []; var level0Seen = {};
+    for (var c = 0; c < numCols; c++) {
+      var colVals = colLabels[colKeys[c]] || [];
+      var lv0 = colVals[0] || '';
+      if (!level0Seen[lv0]) { level0Seen[lv0] = { label: lv0, count: 0 }; level0Groups.push(level0Seen[lv0]); }
+      level0Seen[lv0].count++;
+    }
+    for (var g = 0; g < level0Groups.length; g++) {
+      var cs2 = level0Groups[g].count;
+      html += '<th class="pivot-th pivot-th-col pivot-th-level1" colspan="' + cs2 + '">' + escapeHtml(level0Groups[g].label) + '</th>';
+    }
+    html += '</tr>';
+    for (var level = 1; level < numColDims; level++) {
+      html += '<tr>';
+      for (var c = 0; c < numCols; c++) {
+        var cv2 = colLabels[colKeys[c]] || [];
+        var ll  = cv2[level] || '';
+        html += '<th class="pivot-th pivot-th-col pivot-th-level2">' + escapeHtml(ll) + '</th>';
+      }
+      html += '</tr>';
+    }
+  }
+
+  html += '</thead><tbody>';
+
+  for (var ri = 0; ri < rowKeys.length; ri++) {
+    var rowKey     = rowKeys[ri];
+    var rowDimVals = rowLabels[rowKey] || [];
+    var maxSubRows = (numVals > 1) ? numVals : 1;
+    for (var ci = 0; ci < colKeys.length; ci++) {
+      var cv = (cellMap[rowKey] && cellMap[rowKey][colKeys[ci]]) ? cellMap[rowKey][colKeys[ci]] : [];
+      if (cv.length > maxSubRows) maxSubRows = cv.length;
+    }
+    var rowGroupClass = (ri % 2 === 0) ? ' pivot-row-even' : ' pivot-row-odd';
+
+    for (var subRow = 0; subRow < maxSubRows; subRow++) {
+      var trClass = 'pivot-data-row' + rowGroupClass + (subRow > 0 ? ' pivot-sub-row' : '');
+      html += '<tr class="' + trClass + '" data-row-idx="' + ri + '">';
+      if (subRow === 0) {
+        for (var d = 0; d < numRowDims; d++) {
+          var tdC = 'pivot-td-row' + (d === numRowDims - 1 ? ' pivot-td-row-last' : '');
+          var rsA = (maxSubRows > 1) ? ' rowspan="' + maxSubRows + '"' : '';
+          html += '<td class="' + tdC + '"' + rsA + '>' + escapeHtml(rowDimVals[d] || '') + '</td>';
+        }
+      }
+      for (var ci = 0; ci < colKeys.length; ci++) {
+        var colKey     = colKeys[ci];
+        var displayEntries = (cellMap[rowKey] && cellMap[rowKey][colKey]) ? cellMap[rowKey][colKey] : [];
+        var displayEntry = displayEntries[subRow] || null;
+        var entry = displayEntry ? displayEntry.entry : null;
+        var valueIdx = displayEntry ? displayEntry.valueIdx : -1;
+        var cellVal = (entry && valueIdx >= 0 && entry.vals && entry.vals.length > valueIdx) ? entry.vals[valueIdx] : '';
+        var entryMeasureVals = entry ? (entry.measureVals || []) : [];
+
+        var measureHtml = '';
+        if (numMeasures > 0) {
+          for (var mi = 0; mi < numMeasures; mi++) {
+            var mvStr = (entryMeasureVals[mi] !== undefined) ? entryMeasureVals[mi] : '';
+            if (mvStr !== '') {
+              measureHtml += '<span class="pivot-cell-measure">' + escapeHtml(mvStr) + '</span>';
+            }
+          }
+        }
+        var isEmpty = (cellVal === '' && measureHtml === '');
+        var cellClass = 'pivot-td-cell' + (isEmpty ? ' pivot-td-empty' : '');
+        html += '<td class="' + cellClass + '" data-col-idx="' + ci + '" data-sub-row="' + subRow + '" data-val-idx="' + valueIdx + '">' + escapeHtml(cellVal) + measureHtml + '</td>';
+      }
+      html += '</tr>';
+    }
+  }
+
+  html += '</tbody></table>';
+  return html;
+}
+
+// Build pivot data from flat rows.
+// Each flat row: { rowDims, colDims, vals, measureVals }
+function buildPivotData(flatRows, rowDimNames, colDimNames, valNames, measureNames) {
+  var result = {
+    rowKeys:[], colKeys:[], rowLabels:{}, colLabels:{}, cellMap:{},
+    rowDimNames: rowDimNames, colDimNames: colDimNames,
+    valNames: valNames, measureNames: measureNames || []
+  };
+  var seen = {};
+  for (var i = 0; i < flatRows.length; i++) {
+    var r = flatRows[i];
+    var rowKey  = r.rowDims.join('\x00');
+    var colKey  = r.colDims.join('\x00');
+    var cellKey = (r.vals || []).join('\x00') + '\x1f' + (r.measureVals || []).join('\x00');
+    if (!result.rowLabels[rowKey]) { result.rowKeys.push(rowKey); result.rowLabels[rowKey] = r.rowDims; }
+    if (!result.colLabels[colKey]) { result.colKeys.push(colKey); result.colLabels[colKey] = r.colDims; }
+    if (!result.cellMap[rowKey]) result.cellMap[rowKey] = {};
+    if (!result.cellMap[rowKey][colKey]) { result.cellMap[rowKey][colKey] = []; seen[rowKey+'\x01'+colKey] = {}; }
+    if (!seen[rowKey+'\x01'+colKey][cellKey]) {
+      result.cellMap[rowKey][colKey].push({ vals: r.vals || [], measureVals: r.measureVals || [] });
+      seen[rowKey+'\x01'+colKey][cellKey] = true;
+    }
+  }
+  result.displayCellMap = {};
+  for (var ri = 0; ri < result.rowKeys.length; ri++) {
+    var rk = result.rowKeys[ri];
+    result.displayCellMap[rk] = {};
+    for (var ci = 0; ci < result.colKeys.length; ci++) {
+      var ck = result.colKeys[ci];
+      result.displayCellMap[rk][ck] = buildDisplayEntriesForCell((result.cellMap[rk] && result.cellMap[rk][ck]) || [], result.valNames.length || 1);
+    }
+  }
+  return result;
+}
+
+// ============================================================
+// SCENARIO 1 – Basic (no measure, unchanged behaviour)
+// ============================================================
+var s1Rows = [
+  {rowDims:['Americas'], colDims:['Q1'], vals:['Active']},
+  {rowDims:['Americas'], colDims:['Q2'], vals:['Complete']},
+  {rowDims:['Americas'], colDims:['Q3'], vals:['On Hold']},
+  {rowDims:['EMEA'],     colDims:['Q1'], vals:['Active']},
+  {rowDims:['EMEA'],     colDims:['Q2'], vals:['Active']},
+  {rowDims:['EMEA'],     colDims:['Q2'], vals:['Planning']},
+  {rowDims:['EMEA'],     colDims:['Q3'], vals:['Complete']},
+  {rowDims:['APAC'],     colDims:['Q1'], vals:['Delayed']},
+  {rowDims:['APAC'],     colDims:['Q1'], vals:['Active']},
+  {rowDims:['APAC'],     colDims:['Q2'], vals:['Active']},
+  {rowDims:['APAC'],     colDims:['Q3'], vals:['Planning']},
+];
+document.getElementById('scenario1').innerHTML = renderPivotTable(
+  buildPivotData(s1Rows, ['Region'], ['Quarter'], ['Project Status'])
+);
+
+// ============================================================
+// SCENARIO 2 – Categorical value + numeric Measure (NEW)
+// ============================================================
+var s2Rows = [
+  {rowDims:['Americas'], colDims:['Q1'], vals:['Active'],   measureVals:['142']},
+  {rowDims:['Americas'], colDims:['Q2'], vals:['Complete'], measureVals:['98']},
+  {rowDims:['Americas'], colDims:['Q3'], vals:['On Hold'],  measureVals:['211']},
+  {rowDims:['EMEA'],     colDims:['Q1'], vals:['Active'],   measureVals:['73']},
+  {rowDims:['EMEA'],     colDims:['Q2'], vals:['Active'],   measureVals:['55']},
+  {rowDims:['EMEA'],     colDims:['Q2'], vals:['Planning'], measureVals:['19']},
+  {rowDims:['EMEA'],     colDims:['Q3'], vals:['Complete'], measureVals:['304']},
+  {rowDims:['APAC'],     colDims:['Q1'], vals:['Delayed'],  measureVals:['8']},
+  {rowDims:['APAC'],     colDims:['Q2'], vals:['Active'],   measureVals:['167']},
+  {rowDims:['APAC'],     colDims:['Q3'], vals:['Planning'], measureVals:['44']},
+];
+document.getElementById('scenario2').innerHTML = renderPivotTable(
+  buildPivotData(s2Rows, ['Region'], ['Quarter'], ['Project Status'], ['Revenue ($k)'])
+);
+
+// ============================================================
+// SCENARIO 3 – Measure only (no categorical Values col)
+// ============================================================
+var s3Rows = [
+  {rowDims:['Widget A'], colDims:['Americas'], vals:[], measureVals:['1200']},
+  {rowDims:['Widget A'], colDims:['EMEA'],     vals:[], measureVals:['850']},
+  {rowDims:['Widget A'], colDims:['APAC'],     vals:[], measureVals:['430']},
+  {rowDims:['Widget B'], colDims:['Americas'], vals:[], measureVals:['980']},
+  {rowDims:['Widget B'], colDims:['EMEA'],     vals:[], measureVals:['620']},
+  {rowDims:['Widget B'], colDims:['APAC'],     vals:[], measureVals:['310']},
+  {rowDims:['Widget C'], colDims:['Americas'], vals:[], measureVals:['540']},
+  {rowDims:['Widget C'], colDims:['EMEA'],     vals:[], measureVals:['275']},
+  {rowDims:['Widget C'], colDims:['APAC'],     vals:[], measureVals:['190']},
+];
+document.getElementById('scenario3').innerHTML = renderPivotTable(
+  buildPivotData(s3Rows, ['Product'], ['Region'], [''], ['Units Sold'])
+);
+
+// ============================================================
+// SCENARIO 4 – Two value columns + Measure
+// ============================================================
+var s4Rows = [
+  {rowDims:['Widget A'], colDims:['Americas'], vals:['Active',  'Alice'], measureVals:['320']},
+  {rowDims:['Widget A'], colDims:['EMEA'],     vals:['Planning','Bob'],   measureVals:['140']},
+  {rowDims:['Widget A'], colDims:['APAC'],     vals:['Complete','Carol'], measureVals:['88']},
+  {rowDims:['Widget B'], colDims:['Americas'], vals:['On Hold', 'Dave'],  measureVals:['210']},
+  {rowDims:['Widget B'], colDims:['Americas'], vals:['Delayed', 'Eva'],   measureVals:['55']},
+  {rowDims:['Widget B'], colDims:['EMEA'],     vals:['Active',  'Frank'], measureVals:['175']},
+  {rowDims:['Widget B'], colDims:['APAC'],     vals:['Active',  'Grace'], measureVals:['92']},
+  {rowDims:['Widget C'], colDims:['Americas'], vals:['Complete','Hank'],  measureVals:['400']},
+  {rowDims:['Widget C'], colDims:['EMEA'],     vals:['Active',  'Ivy'],   measureVals:['230']},
+  {rowDims:['Widget C'], colDims:['APAC'],     vals:['Planning','Jack'],  measureVals:['115']},
+];
+document.getElementById('scenario4').innerHTML = renderPivotTable(
+  buildPivotData(s4Rows, ['Product'], ['Region'], ['Status','Owner'], ['Budget ($k)'])
+);
+</script>
+</body>
+</html>

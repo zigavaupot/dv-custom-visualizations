@@ -128,8 +128,9 @@
     background-color: #ffffff;
     border: 1px solid #dddddd;
     border-top: none;
-    padding: 8px 12px;
+    padding: 6px 10px;
     font-size: 12px;
+    line-height: 16px;
     color: #312D2A;
     margin-bottom: 8px;
     display: flex;
@@ -319,6 +320,7 @@
     justify-content: flex-start;
     box-sizing: border-box;
     width: 100%;
+    margin-right: 4px;
 }
 
 /* Task Title (matching kanbanViz - centered) */
@@ -328,12 +330,38 @@
     line-height: 15px;
     color: #1a1a1a;
     word-break: break-word;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.calendar-task-secondary {
+    font-weight: 500;
+    font-size: 10px;
+    line-height: 13px;
+    color: #666;
+    word-break: break-word;
     margin-bottom: 2px;
     text-align: center;
 }
 
+.calendar-task-title-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.calendar-task-title-link:hover {
+    text-decoration: underline;
+}
+
 /* Middle row (Nosilec / 4th column from Rows, below title) */
 .calendar-task-middle {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    width: 100%;
     font-size: 10px;
     line-height: 13px;
     color: #666;
@@ -341,6 +369,7 @@
     text-align: center;
     margin-bottom: 2px;
     word-break: break-word;
+    white-space: pre-line;
 }
 
 /* Table layout for subtitle row */
@@ -363,29 +392,27 @@
     font-size: 9px;
     line-height: 12px;
     color: #666;
-    font-weight: 400;
+    font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 0;
 }
 
 .calendar-task-subtitle-left {
     text-align: left;
-    padding-right: 2px;
-    width: 35%;
+    width: 25%;
 }
 
 .calendar-task-subtitle-right {
     text-align: right;
-    padding-left: 2px;
-    width: 35%;
+    width: 40%;
 }
 
 .calendar-task-subtitle-center {
     text-align: center;
-    padding-left: 4px;
-    padding-right: 4px;
-    width: 30%;
+    width: 35%;
+    font-weight: 600;
 }
 
 /* Bottom row (matching kanbanViz subtitle3 / status) */
@@ -402,6 +429,8 @@
     text-align: left;
     word-break: break-word;
     box-sizing: border-box;
+    padding-left: 0;
+    margin-left: 0;
 }
 
 /* Flagged Task Cards - Red (deadline passed) */
@@ -545,6 +574,10 @@
         font-size: 11px;
     }
 
+    .calendar-task-secondary {
+        font-size: 9px;
+    }
+
     .calendar-task-subtitle {
         font-size: 10px;
     }
@@ -574,6 +607,10 @@
 
     .calendar-task-title {
         font-size: 10px;
+    }
+
+    .calendar-task-secondary {
+        font-size: 9px;
     }
 
     .calendar-task-subtitle {

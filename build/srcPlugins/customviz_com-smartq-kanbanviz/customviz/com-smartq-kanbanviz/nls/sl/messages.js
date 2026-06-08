@@ -6,6 +6,8 @@ define({
   "KANBANVIZ_ROW": "Naloga",
   "KANBANVIZ_MEASURE": "Dokončanost %",
   "KANBANVIZ_COLOR": "Barva",
+  "KANBANVIZ_CONDITIONAL_FORMATTING": "Conditional Formatting",
+  "KANBANVIZ_URL": "URL",
   "KANBANVIZ_TOOLTIP": "Namig",
 
   // UI Labels
@@ -21,29 +23,29 @@ define({
 
   // Lane 1: 0% dokončanosti
   "LANE_0_PERCENT": "0%",
-  "LANE_0_PERCENT_HEADER": "Ni začeto",
+  "LANE_0_PERCENT_HEADER": "0%",
 
   // Lane 2: 10% dokončanosti
   "LANE_10_PERCENT": "10%",
-  "LANE_10_PERCENT_HEADER": "Pravkar začeto",
+  "LANE_10_PERCENT_HEADER": "10%",
 
   // Lane 3: 25% dokončanosti
   "LANE_25_PERCENT": "25%",
-  "LANE_25_PERCENT_HEADER": "V teku",
+  "LANE_25_PERCENT_HEADER": "25%",
 
   // Lane 4: 50% dokončanosti
   "LANE_50_PERCENT": "50%",
-  "LANE_50_PERCENT_HEADER": "Na polovici",
+  "LANE_50_PERCENT_HEADER": "50%",
 
   // Lane 5: 75% dokončanosti
   "LANE_75_PERCENT": "75%",
-  "LANE_75_PERCENT_HEADER": "Skoraj končano",
+  "LANE_75_PERCENT_HEADER": "75%",
 
   // Lane 6: 95% dokončanosti
   "LANE_95_PERCENT": "95%",
-  "LANE_95_PERCENT_HEADER": "Končni pregled",
+  "LANE_95_PERCENT_HEADER": "95%",
 
   // Lane 7: 100% dokončanosti
   "LANE_100_PERCENT": "100%",
-  "LANE_100_PERCENT_HEADER": "Dokončano"
+  "LANE_100_PERCENT_HEADER": "100%"
 });

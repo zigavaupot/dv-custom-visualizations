@@ -6,6 +6,8 @@ define({
   "KANBANVIZ_ROW": "Attività",
   "KANBANVIZ_MEASURE": "Completamento %",
   "KANBANVIZ_COLOR": "Colore",
+  "KANBANVIZ_CONDITIONAL_FORMATTING": "Conditional Formatting",
+  "KANBANVIZ_URL": "URL",
   "KANBANVIZ_TOOLTIP": "Tooltip",
 
   // UI Labels

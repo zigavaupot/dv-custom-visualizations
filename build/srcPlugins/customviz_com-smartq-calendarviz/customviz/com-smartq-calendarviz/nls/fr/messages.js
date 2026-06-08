@@ -5,6 +5,8 @@ define({
   "CALENDARVIZ_CATEGORY": "Plugin CalendarViz",
   "CALENDARVIZ_ROW": "Tâche",
   "CALENDARVIZ_COLOR": "Couleur",
+  "CALENDARVIZ_CONDITIONAL_FORMATTING": "Conditional Formatting",
+  "CALENDARVIZ_URL": "URL",
   "CALENDARVIZ_TOOLTIP": "Info-bulle",
 
   // UI Labels

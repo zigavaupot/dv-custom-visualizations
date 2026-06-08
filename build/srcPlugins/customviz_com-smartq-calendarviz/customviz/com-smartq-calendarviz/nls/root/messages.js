@@ -8,6 +8,8 @@ define({
   "CALENDARVIZ_CATEGORY": "CalendarViz Plugin",
   "CALENDARVIZ_ROW": "Task",
   "CALENDARVIZ_COLOR": "Color",
+  "CALENDARVIZ_CONDITIONAL_FORMATTING": "Conditional Formatting",
+  "CALENDARVIZ_URL": "URL",
   "CALENDARVIZ_TOOLTIP": "Tooltip",
 
   // UI Labels

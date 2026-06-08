@@ -7,7 +7,7 @@
     "vizPreference": 50,
 
     "measureLabelConfig": {
-      "supportedEdges": ["color", "size", "tooltip"],
+      "supportedEdges": ["color", "glyph", "size", "tooltip"],
       "defaultEdge": "row",
       "visibility": "hidden"
     },
@@ -18,15 +18,15 @@
         "global": {
           "priority": 1,
           "minCount": 3,
-          "maxCount": 3,
-          "preferredMax": 3
+          "maxCount": 5,
+          "preferredMax": 5
         },
         "ui": {
           "customName": {
             "key": "CALENDARVIZ_ROW",
             "default": "Rows"
           },
-          "description": "1st: ID, 2nd: Task name, 3rd: Date (Rok izvedbe)"
+          "description": "1st: Task title, 2nd: subtitle/ID, 3rd: date (used for calendar placement), 4th: middle text, 5th: bottom text"
         },
         "categorical": {
           "functionalInfo": ["categoricalType"]
@@ -50,10 +50,50 @@
           "functionalInfo": ["inner", "row", "categoricalType"]
         }
       },
-      "tooltip": {
+      "glyph": {
         "contentType": "categorical",
         "global": {
           "priority": 5,
+          "minCount": 0,
+          "maxCount": 2,
+          "preferredMax": 2
+        },
+        "ui": {
+          "customName": {
+            "key": "CALENDARVIZ_CONDITIONAL_FORMATTING",
+            "default": "Conditional Formatting"
+          },
+          "_forceCustomName": true,
+          "description": "1st column = RED condition flag, 2nd column = YELLOW condition flag."
+        },
+        "categorical": {
+          "functionalInfo": ["categoricalType"]
+        }
+      },
+      "size": {
+        "contentType": "categorical",
+        "global": {
+          "priority": 6,
+          "minCount": 0,
+          "maxCount": 1,
+          "preferredMax": 1
+        },
+        "ui": {
+          "customName": {
+            "key": "CALENDARVIZ_URL",
+            "default": "URL"
+          },
+          "_forceCustomName": true,
+          "description": "Optional hyperlink target opened when the task title is clicked."
+        },
+        "categorical": {
+          "functionalInfo": ["categoricalType"]
+        }
+      },
+      "tooltip": {
+        "contentType": "categorical",
+        "global": {
+          "priority": 7,
           "minCount": 0,
           "maxCount": 5
         },
@@ -83,9 +123,7 @@
           "description": "Optional numeric values"
         }
       },
-
-      "size": "none",
-      "glyph": "none"
+      "detail": "none"
     }
   }
 }

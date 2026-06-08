@@ -3,7 +3,8 @@
     "allow": [
       "Bash(./gradlew clean build:*)",
       "Bash(unzip:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(./gradlew build:*)"
     ]
   }
 }

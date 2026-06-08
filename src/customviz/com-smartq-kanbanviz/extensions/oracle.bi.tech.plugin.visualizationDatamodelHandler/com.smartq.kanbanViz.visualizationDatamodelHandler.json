@@ -7,7 +7,7 @@
     "vizPreference": 50,
 
     "measureLabelConfig": {
-      "supportedEdges": ["color", "size", "tooltip"],
+      "supportedEdges": ["color", "glyph", "size", "tooltip"],
       "defaultEdge": "row",
       "visibility": "hidden"
     },
@@ -33,8 +33,8 @@
         "global": {
           "priority": 1,
           "minCount": 1,
-          "maxCount": 4,
-          "preferredMax": 4
+          "maxCount": 5,
+          "preferredMax": 5
         },
         "ui": {
           "customName": {
@@ -65,10 +65,52 @@
         }
       },
 
-      "tooltip": {
+      "glyph": {
+        "contentType": "categorical",
+        "global": {
+          "priority": 3,
+          "minCount": 0,
+          "maxCount": 2,
+          "preferredMax": 2
+        },
+        "ui": {
+          "customName": {
+            "key": "KANBANVIZ_CONDITIONAL_FORMATTING",
+            "default": "Conditional Formatting"
+          },
+          "_forceCustomName": true,
+          "description": "1st column = RED condition flag, 2nd column = YELLOW condition flag (Y/D/Yes/1/TRUE)."
+        },
+        "categorical": {
+          "functionalInfo": ["categoricalType"]
+        }
+      },
+
+      "size": {
         "contentType": "categorical",
         "global": {
           "priority": 5,
+          "minCount": 0,
+          "maxCount": 1,
+          "preferredMax": 1
+        },
+        "ui": {
+          "customName": {
+            "key": "KANBANVIZ_URL",
+            "default": "URL"
+          },
+          "_forceCustomName": true,
+          "description": "Optional hyperlink target opened when the task title is clicked."
+        },
+        "categorical": {
+          "functionalInfo": ["categoricalType"]
+        }
+      },
+
+      "tooltip": {
+        "contentType": "categorical",
+        "global": {
+          "priority": 6,
           "minCount": 0,
           "maxCount": 8
         },
@@ -77,37 +119,13 @@
             "key": "KANBANVIZ_TOOLTIP",
             "default": "Tooltip"
           },
-          "description": "1st column: RED condition flag (Y/D/1/TRUE). 2nd column: YELLOW condition flag (Y/D/1/TRUE). Remaining columns appear in tooltip."
+          "description": "Additional attributes displayed in tooltip."
         },
         "categorical": {
-          "functionalInfo": ["categoricalType"],
-          "edgeLabels": {
-            "supported": true,
-            "properties": [
-              {
-                "id": "displayName",
-                "type": "string",
-                "label": "Display Name",
-                "default": ""
-              },
-              {
-                "id": "colorRole",
-                "type": "dropdown",
-                "label": "Color Role",
-                "default": "none",
-                "options": [
-                  {"value": "none", "label": "None (Show in Tooltip)"},
-                  {"value": "red", "label": "RED Condition"},
-                  {"value": "yellow", "label": "YELLOW Condition"}
-                ]
-              }
-            ]
-          }
+          "functionalInfo": ["categoricalType"]
         }
       },
-
-      "size": "none",
-      "glyph": "none"
+      "detail": "none"
     }
   }
 }

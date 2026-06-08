@@ -1,11 +1,14 @@
 define([
   'jquery',
   'obitech-framework/jsx',
+  'obitech-application/gadgets',
   'obitech-report/datavisualization',
+  'obitech-report/gadgetdialog',
   'obitech-reportservices/datamodelshapes',
   'obitech-reportservices/data',
   'obitech-reportservices/events',
   'obitech-reportservices/interactionservice',
+  'obitech-application/extendable-ui-definitions',
   'obitech-appservices/logger',
   'com-smartq-kanbanviz/colorConfig',
   'com-smartq-kanbanviz/nls/root/messages',
@@ -14,15 +17,19 @@ define([
   'com-smartq-kanbanviz/nls/de/messages',
   'com-smartq-kanbanviz/nls/es/messages',
   'com-smartq-kanbanviz/nls/hr/messages',
+  'com-smartq-kanbanviz/nls/it/messages',
   'css!com-smartq-kanbanviz/kanbanVizstyles'
 ], function(
   $,
   jsx,
+  gadgets,
   dataviz,
+  gadgetdialog,
   datamodelshapes,
   data,
   events,
   interactions,
+  euidef,
   logger,
   colorConfig,
   messages_en,
@@ -30,7 +37,8 @@ define([
   messages_fr,
   messages_de,
   messages_es,
-  messages_hr
+  messages_hr,
+  messages_it
 ) {
   "use strict";
 
@@ -46,6 +54,7 @@ define([
   // - de/messages.js (German)
   // - es/messages.js (Spanish)
   // - hr/messages.js (Croatian)
+  // - it/messages.js (Italian)
   // ========================================================================
   var messages;
 
@@ -73,6 +82,9 @@ define([
       } else if (userLang.indexOf('hr') === 0) {
         messages = messages_hr;
         console.log('[KanbanViz] Using Croatian translations from NLS file');
+      } else if (userLang.indexOf('it') === 0) {
+        messages = messages_it;
+        console.log('[KanbanViz] Using Italian translations from NLS file');
       } else {
         messages = messages_en;
         console.log('[KanbanViz] Using English translations from NLS file (default)');
@@ -139,6 +151,32 @@ define([
     return CATEGORY_COLOR_MAP[categoryValue] || null;
   }
 
+  function getTaskColorSortRank(task) {
+    if (task && task.conditionFlagRed) return 0;
+    if (task && task.conditionFlagYellow) return 1;
+    return 2;
+  }
+
+  function compareTaskIds(a, b) {
+    var idA = a && a.subtitle1 != null ? String(a.subtitle1).trim() : "";
+    var idB = b && b.subtitle1 != null ? String(b.subtitle1).trim() : "";
+    if (idA && idB) {
+      var compared = idA.localeCompare(idB, undefined, { numeric: true, sensitivity: "base" });
+      if (compared !== 0) return compared;
+    } else if (idA) {
+      return -1;
+    } else if (idB) {
+      return 1;
+    }
+    return ((a && a.rowIndex) || 0) - ((b && b.rowIndex) || 0);
+  }
+
+  function compareTasksForCardOrder(a, b) {
+    var colorRank = getTaskColorSortRank(a) - getTaskColorSortRank(b);
+    if (colorRank !== 0) return colorRank;
+    return compareTaskIds(a, b);
+  }
+
   // ========================================================================
   // GRAMMAR CONFIGURATION - Specify how many columns in each grammar slot
   // ========================================================================
@@ -149,8 +187,10 @@ define([
   //   GRAMMAR_CONFIG = { rowCount: 2, colorCount: 1, tooltipCount: 3 };
   //
   var GRAMMAR_CONFIG = {
-    rowCount: 4,      // Number of columns in Rows (Task) grammar - MAX 4
+    rowCount: 5,      // Number of columns in Rows (Task) grammar - MAX 5
     colorCount: 1,    // Number of columns in Color grammar - MAX 1
+    glyphCount: 2,    // Number of columns in Shape/Conditional Formatting grammar - MAX 2
+    sizeCount: 1,     // Number of columns in URL grammar - MAX 1
     tooltipCount: 0   // Number of columns in Tooltip grammar (excluding condition flags)
   };
   // ========================================================================
@@ -211,6 +251,48 @@ define([
       .replace(/>/g,"&gt;")
       .replace(/"/g,"&quot;")
       .replace(/'/g,"&#39;");
+  }
+
+  function normalizeUrl(urlValue) {
+    if (urlValue === null || urlValue === undefined) return null;
+    var raw = String(urlValue).trim();
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^mailto:/i.test(raw)) return raw;
+    if (/^www\./i.test(raw)) return "https://" + raw;
+    return null;
+  }
+
+  function normalizeBooleanOption(value, defaultValue) {
+    if (value === undefined || value === null || value === "" || value === "auto") {
+      return defaultValue;
+    }
+    if (value === true || value === "true") return true;
+    if (value === false || value === "false") return false;
+    return defaultValue;
+  }
+
+  function normalizeAlignmentOption(value, defaultValue) {
+    if (value === undefined || value === null || value === "" || value === "auto") {
+      return defaultValue;
+    }
+    if (value === "left" || value === "center" || value === "right") {
+      return value;
+    }
+    return defaultValue;
+  }
+
+  function getTextAlignStyle(value, defaultValue) {
+    var align = normalizeAlignmentOption(value, defaultValue);
+    return "text-align:" + align + ";";
+  }
+
+  function getFlexAlignStyle(value, defaultValue) {
+    var align = normalizeAlignmentOption(value, defaultValue);
+    var alignItems = "center";
+    if (align === "left") alignItems = "flex-start";
+    if (align === "right") alignItems = "flex-end";
+    return "text-align:" + align + ";align-items:" + alignItems + ";";
   }
 
   /**
@@ -547,11 +629,13 @@ define([
    * - Layer 0: Task title (from Rows - 1st column)
    * - Layer 1: Subtitle line 1 (from Rows - 2nd column) - displayed above title (top-left)
    * - Layer 2: Subtitle line 2 (from Rows - 3rd column) - displayed above title (top-right)
-   * - Layer 3: Subtitle line 3 (from Rows - 4th column) - displayed at bottom of card
-   * - Layer 4: Color category (from Color grammar placeholder) - for stripe color
-   * - Layer 5: Condition flag RED (from Tooltips - 1st column) - Y/Yes/D/Da/1/TRUE -> light red background
-   * - Layer 6: Condition flag YELLOW (from Tooltips - 2nd column) - Y/Yes/D/Da/1/TRUE -> light yellow background
-   * - Layer 7+: Additional Tooltip columns - displayed in tooltip
+   * - Layer 3: Subtitle line 3 (from Rows - 4th column) - displayed in card body
+   * - Layer 4: Bottom label (from Rows - 5th column) - displayed at bottom of card
+   * - Layer 5: Color category (from Color grammar placeholder) - for stripe color
+   * - Layer 6: Condition flag RED (from Shape/Conditional Formatting - 1st column)
+   * - Layer 7: Condition flag YELLOW (from Shape/Conditional Formatting - 2nd column)
+   * - Layer 8: URL column - hidden, used for title click navigation
+   * - Layer 9+: Tooltip columns - displayed in tooltip
    *
    * Physical.DATA: Completion % measure
    *
@@ -560,13 +644,23 @@ define([
   KanbanViz.prototype._extractTasks = function(oDataLayout, dateFormat) {
     var tasks = [];
     try {
+      var self = this;
       if (!oDataLayout) return tasks;
 
       // Default date format if not provided (using OAC convention)
       dateFormat = dateFormat || "yyyy-MM-dd";
 
-      var oDataModel = this.getRootDataModel();
-      if (!oDataModel) return tasks;
+      var oRootDataModel = this.getRootDataModel();
+      var oDataModel = this._currentLogicalDataModel || this._currentDataModel || oRootDataModel;
+      if (!oDataModel && !oRootDataModel) return tasks;
+
+      // Get row extent early (needed for low-level row-layer probing fallback)
+      var rowCount = 0;
+      try {
+        rowCount = oDataLayout.getEdgeExtent(datamodelshapes.Physical.ROW) || 0;
+      } catch (eRowCnt) {
+        rowCount = 0;
+      }
 
       // Get all columns on the ROW edge
       var rowCols = [];
@@ -576,45 +670,172 @@ define([
         rowCols = [];
       }
 
-      // Use manual grammar configuration from GRAMMAR_CONFIG
+      // Runtime fallback: some OAC builds return no Physical.ROW column IDs even when data exists.
+      // In that case, probe row layers directly from oDataLayout.
+      if (!rowCols || rowCols.length === 0) {
+        var detectedLayers = [];
+        var maxProbeLayers = 40;
+        var sampleRows = Math.min(Math.max(rowCount, 1), 20);
+        var missStreak = 0;
+        for (var layerProbe = 0; layerProbe < maxProbeLayers; layerProbe++) {
+          var layerReadable = false;
+          for (var rr = 0; rr < sampleRows; rr++) {
+            try {
+              // If no exception, layer exists (value may legitimately be null/empty)
+              oDataLayout.getValue(datamodelshapes.Physical.ROW, layerProbe, rr, false);
+              layerReadable = true;
+              break;
+            } catch (eProbe) {}
+          }
+          if (layerReadable) {
+            detectedLayers.push(layerProbe);
+            missStreak = 0;
+          } else {
+            missStreak++;
+            if (detectedLayers.length > 0 && missStreak >= 3) {
+              break;
+            }
+          }
+        }
+        if (detectedLayers.length > 0) {
+          rowCols = detectedLayers;
+          console.log("[KanbanViz] Using probed Physical.ROW layers:", rowCols.length);
+        }
+      }
+
+      // Config fallback (used only if logical roles are not available)
       var rowRoleCount = GRAMMAR_CONFIG.rowCount || 0;
       var colorRoleCount = GRAMMAR_CONFIG.colorCount || 0;
+      var glyphRoleCount = GRAMMAR_CONFIG.glyphCount || 0;
+      var sizeRoleCount = GRAMMAR_CONFIG.sizeCount || 0;
       var tooltipRoleCount = GRAMMAR_CONFIG.tooltipCount || 0;
 
-      console.log("[KanbanViz] Using GRAMMAR_CONFIG - ROW:", rowRoleCount, "COLOR:", colorRoleCount, "TOOLTIP:", tooltipRoleCount);
+      console.log("[KanbanViz] GRAMMAR_CONFIG fallback - ROW:", rowRoleCount, "COLOR:", colorRoleCount, "GLYPH:", glyphRoleCount, "SIZE:", sizeRoleCount, "TOOLTIP:", tooltipRoleCount);
 
       // Helper to get display name for a column
       function resolveDisplayName(colId) {
         if (!colId) return null;
-        try {
-          var cObj = oDataModel.getColumnByID(colId);
-          if (cObj) {
-            // Try getLabel() first - this is the user-friendly display name
-            if (cObj.getLabel && cObj.getLabel()) {
-              return cObj.getLabel();
+        function cleanDisplayName(name) {
+          var cleaned = String(name || "").replace(/\s+/g, " ").trim();
+          return cleaned || null;
+        }
+        function getPreferredEdgeLabelName(rawColId) {
+          var propertyKeys = ["label", "displayName", "caption", "name", "heading", "title"];
+          for (var pk = 0; pk < propertyKeys.length; pk++) {
+            var propValue = getEdgeLabelProperty(rawColId, propertyKeys[pk]);
+            var cleanedProp = cleanDisplayName(propValue);
+            if (cleanedProp) {
+              return cleanedProp;
             }
-            // Fallback to other methods
-            if (cObj.getDisplayName && cObj.getDisplayName()) {
-              return cObj.getDisplayName();
-            } else if (cObj.getCaption && cObj.getCaption()) {
-              return cObj.getCaption();
-            } else if (cObj.getName && cObj.getName()) {
-              return cObj.getName();
+          }
+          return null;
+        }
+        function deriveDisplayNameFromId(rawColId) {
+          if (rawColId == null) return null;
+          var colIdText = String(rawColId);
+          if (!colIdText) return null;
+
+          // Prefer the last quoted identifier, which commonly preserves the real column caption.
+          var quotedParts = [];
+          var quoteMatch;
+          var quotedRe = /"([^"]+)"/g;
+          while ((quoteMatch = quotedRe.exec(colIdText)) !== null) {
+            if (quoteMatch[1]) quotedParts.push(quoteMatch[1]);
+          }
+          for (var qi = quotedParts.length - 1; qi >= 0; qi--) {
+            var quotedCandidate = cleanDisplayName(quotedParts[qi]);
+            if (quotedCandidate) return quotedCandidate;
+          }
+
+          // Fall back to the trailing token from dotted/qualified IDs.
+          var lastToken = colIdText.split(/[./:]/).pop();
+          if (lastToken) {
+            lastToken = lastToken.replace(/^[\[\("'`]+|[\]\)"'`]+$/g, "");
+            lastToken = cleanDisplayName(lastToken.replace(/_/g, " "));
+            if (lastToken) return lastToken;
+          }
+          return null;
+        }
+        function pickReadableName(primaryName, rawColId) {
+          var edgeLabelName = getPreferredEdgeLabelName(rawColId);
+          if (edgeLabelName && /\s/.test(edgeLabelName)) {
+            return edgeLabelName;
+          }
+          var cleanedPrimary = cleanDisplayName(primaryName);
+          var derivedName = deriveDisplayNameFromId(rawColId);
+          if (!cleanedPrimary) return derivedName;
+          if (!derivedName) return cleanedPrimary;
+
+          var primaryHasSpace = /\s/.test(cleanedPrimary);
+          var derivedHasSpace = /\s/.test(derivedName);
+          if (!primaryHasSpace && derivedHasSpace) {
+            return derivedName;
+          }
+          return cleanedPrimary;
+        }
+        function pickBestName(cObj) {
+          if (!cObj) return null;
+          var candidates = [];
+          try { if (cObj.getCaption && cObj.getCaption()) candidates.push(String(cObj.getCaption())); } catch (_) {}
+          try { if (cObj.getDisplayName && cObj.getDisplayName()) candidates.push(String(cObj.getDisplayName())); } catch (_) {}
+          try { if (cObj.getLabel && cObj.getLabel()) candidates.push(String(cObj.getLabel())); } catch (_) {}
+          try { if (cObj.getName && cObj.getName()) candidates.push(String(cObj.getName())); } catch (_) {}
+
+          for (var ci = 0; ci < candidates.length; ci++) {
+            var candidate = cleanDisplayName(candidates[ci]);
+            if (candidate && /\s/.test(candidate)) {
+              return pickReadableName(candidate, colId);
+            }
+          }
+          for (var cj = 0; cj < candidates.length; cj++) {
+            var fallbackCandidate = cleanDisplayName(candidates[cj]);
+            if (fallbackCandidate) {
+              return pickReadableName(fallbackCandidate, colId);
+            }
+          }
+          return deriveDisplayNameFromId(colId);
+        }
+        var models = [oDataModel, oRootDataModel, self._currentDataModel, self._currentLogicalDataModel];
+        for (var mi = 0; mi < models.length; mi++) {
+          var model = models[mi];
+          if (!model) continue;
+          try {
+            var cObj = model.getColumnByID && model.getColumnByID(colId);
+            if (cObj) {
+              var bestName = pickBestName(cObj);
+              if (bestName) {
+                return bestName;
+              }
+            }
+          } catch (e) {}
+        }
+        try {
+          if (oDataModel && oDataModel.getColumnByID) {
+            var cObj2 = oDataModel.getColumnByID(colId);
+            if (cObj2) {
+              var bestName2 = pickBestName(cObj2);
+              if (bestName2) return bestName2;
             }
           }
         } catch (e) {
           console.log("[KanbanViz] Error resolving display name for colId:", colId, e);
         }
-        return (typeof colId === "string") ? colId : null;
+        return (typeof colId === "string") ? deriveDisplayNameFromId(colId) : null;
       }
 
       // Helper to get edge label property for a column
       function getEdgeLabelProperty(colId, propertyId) {
         if (!colId) return null;
         try {
-          var cObj = oDataModel.getColumnByID(colId);
-          if (cObj && cObj.getEdgeLabelProperty) {
-            return cObj.getEdgeLabelProperty(propertyId);
+          var models = [oDataModel, oRootDataModel, self._currentDataModel, self._currentLogicalDataModel];
+          for (var mi = 0; mi < models.length; mi++) {
+            var model = models[mi];
+            if (!model || !model.getColumnByID) continue;
+            var cObj = model.getColumnByID(colId);
+            if (cObj && cObj.getEdgeLabelProperty) {
+              var p = cObj.getEdgeLabelProperty(propertyId);
+              if (p !== null && p !== undefined && p !== "") return p;
+            }
           }
         } catch (e) {
           // Edge labels not supported in this Oracle Analytics version
@@ -626,89 +847,380 @@ define([
       function getLogicalRole(colId) {
         if (!colId) return null;
         try {
-          var cObj = oDataModel.getColumnByID(colId);
-          if (cObj && cObj.getLogicalRole) {
-            return cObj.getLogicalRole();
+          var models = [oDataModel, oRootDataModel, self._currentDataModel, self._currentLogicalDataModel];
+          for (var mi = 0; mi < models.length; mi++) {
+            var model = models[mi];
+            if (!model || !model.getColumnByID) continue;
+            var cObj = model.getColumnByID(colId);
+            if (cObj && cObj.getLogicalRole) {
+              var role = cObj.getLogicalRole();
+              if (role !== null && role !== undefined) return role;
+            }
           }
         } catch (e) {}
         return null;
       }
 
-      // Separate columns based on grammar slot counts
-      // Oracle Analytics places columns in Physical.ROW in this order:
-      // 1. ROW grammar columns (0 to rowRoleCount-1)
-      // 2. COLOR grammar columns (rowRoleCount to rowRoleCount+colorRoleCount-1)
-      // 3. TOOLTIP grammar columns (remaining)
+      function getRowLayerIndex(colId) {
+        if (!colId) return -1;
+        var idx = rowCols.indexOf(colId);
+        if (idx >= 0) return idx;
+
+        // ID string fallback (handles object vs string ID mismatch)
+        var colIdStr = String(colId);
+        for (var i = 0; i < rowCols.length; i++) {
+          if (String(rowCols[i]) === colIdStr) return i;
+        }
+
+        // Display-name fallback (handles different model namespaces)
+        var targetName = resolveDisplayName(colId);
+        if (targetName) {
+          for (var j = 0; j < rowCols.length; j++) {
+            var rcName = resolveDisplayName(rowCols[j]);
+            if (rcName && rcName === targetName) return j;
+          }
+        }
+
+        return -1;
+      }
+
+      function sameRowColumn(colA, colB) {
+        if (!colA || !colB) return false;
+        var a = getRowLayerIndex(colA);
+        var b = getRowLayerIndex(colB);
+        return a >= 0 && b >= 0 && a === b;
+      }
+
+      // Try to read columns by logical placeholder directly.
+      // This preserves slot boundaries even when some placeholders have fewer columns.
+      function tryLogicalColumns(logicalEdge) {
+        var cols = null;
+        var edgeCandidates = [];
+        var models = [oDataModel, oRootDataModel, self._currentDataModel, self._currentLogicalDataModel];
+        function pushEdgeCandidate(v) {
+          if (v === null || v === undefined) return;
+          for (var i = 0; i < edgeCandidates.length; i++) {
+            if (edgeCandidates[i] === v) return;
+          }
+          edgeCandidates.push(v);
+        }
+        pushEdgeCandidate(logicalEdge);
+        try { pushEdgeCandidate(String(logicalEdge)); } catch (eStr) {}
+        try { pushEdgeCandidate(String(logicalEdge).toLowerCase()); } catch (eLower) {}
+        try { pushEdgeCandidate(String(logicalEdge).toUpperCase()); } catch (eUpper) {}
+
+        for (var mi0 = 0; mi0 < models.length; mi0++) {
+          var m0 = models[mi0];
+          if (!m0) continue;
+          for (var ec0 = 0; ec0 < edgeCandidates.length; ec0++) {
+            try {
+              cols = m0.getUsedColumnIDsIn && m0.getUsedColumnIDsIn(edgeCandidates[ec0]);
+              if (cols && cols.length > 0) return cols.slice();
+            } catch (e0) {}
+          }
+        }
+        for (var mi1 = 0; mi1 < models.length; mi1++) {
+          var m1 = models[mi1];
+          if (!m1) continue;
+          for (var ec1 = 0; ec1 < edgeCandidates.length; ec1++) {
+            try {
+              cols = m1.getColumnIDsIn && m1.getColumnIDsIn(edgeCandidates[ec1]);
+              if (cols && cols.length > 0) return cols.slice();
+            } catch (e1) {}
+          }
+        }
+        // Some OAC builds expose logical edges only through getLogicalEdges().
+        for (var mi2 = 0; mi2 < models.length; mi2++) {
+          var m2 = models[mi2];
+          if (!m2) continue;
+          try {
+            if (m2.getLogicalEdges) {
+              var edges = m2.getLogicalEdges();
+              if (edges && edges.getChildByName) {
+                for (var ec2 = 0; ec2 < edgeCandidates.length; ec2++) {
+                  var edgeName = String(edgeCandidates[ec2]).toLowerCase();
+                  var edgeObj = edges.getChildByName(edgeName);
+                  if (edgeObj && edgeObj.getUsedColumnIDsIn) {
+                    cols = edgeObj.getUsedColumnIDsIn();
+                    if (cols && cols.length > 0) return cols.slice();
+                  }
+                }
+              }
+            }
+          } catch (e2) {}
+        }
+        return null;
+      }
+
+      // Prefer direct logical-edge lists to keep exact slot boundaries.
+      // Fallback to per-column logical role and finally positional split.
       var rowRoleColumns = [];
       var colorRoleColumns = [];
+      var glyphRoleColumns = [];
+      var sizeRoleColumns = [];
       var tooltipRoleColumns = [];
+      var unresolvedColumns = [];
 
       console.log("[KanbanViz] Total columns in Physical.ROW:", rowCols.length);
 
-      for (var i = 0; i < rowCols.length; i++) {
-        var colId = rowCols[i];
-        var displayName = resolveDisplayName(colId);
+      var logicalRowCols = tryLogicalColumns(datamodelshapes.Logical.ROW) || [];
+      var logicalColorCols = tryLogicalColumns(datamodelshapes.Logical.COLOR) || [];
+      var logicalGlyphCols = tryLogicalColumns(datamodelshapes.Logical.GLYPH) || [];
+      var logicalSizeCols = tryLogicalColumns(datamodelshapes.Logical.SIZE) || [];
+      var logicalTooltipCols = tryLogicalColumns(datamodelshapes.Logical.TOOLTIP) || [];
+      var explicitRowCount = logicalRowCols.length;
 
-        if (i < rowRoleCount) {
-          // First N columns are from ROW grammar
-          rowRoleColumns.push(colId);
-          console.log("[KanbanViz] Column", i, ":", displayName, "-> ROW grammar");
-        } else if (i < rowRoleCount + colorRoleCount) {
-          // Next M columns are from COLOR grammar
-          colorRoleColumns.push(colId);
-          console.log("[KanbanViz] Column", i, ":", displayName, "-> COLOR grammar");
+      var hasLogicalLists = (logicalRowCols.length || logicalColorCols.length || logicalGlyphCols.length || logicalSizeCols.length || logicalTooltipCols.length);
+
+      if (hasLogicalLists) {
+        rowRoleColumns = logicalRowCols.slice();
+        colorRoleColumns = logicalColorCols.slice();
+        glyphRoleColumns = logicalGlyphCols.slice();
+        sizeRoleColumns = logicalSizeCols.slice();
+        tooltipRoleColumns = logicalTooltipCols.slice();
+        // Keep only columns that exist on Physical.ROW in this model instance
+        rowRoleColumns = rowRoleColumns.filter(function(c){ return getRowLayerIndex(c) >= 0; });
+        colorRoleColumns = colorRoleColumns.filter(function(c){ return getRowLayerIndex(c) >= 0; });
+        glyphRoleColumns = glyphRoleColumns.filter(function(c){ return getRowLayerIndex(c) >= 0; });
+        sizeRoleColumns = sizeRoleColumns.filter(function(c){ return getRowLayerIndex(c) >= 0; });
+        tooltipRoleColumns = tooltipRoleColumns.filter(function(c){ return getRowLayerIndex(c) >= 0; });
+        if (rowRoleColumns.length || colorRoleColumns.length || glyphRoleColumns.length || sizeRoleColumns.length || tooltipRoleColumns.length) {
+          console.log("[KanbanViz] Using direct logical-edge column lists");
         } else {
-          // Remaining columns are from TOOLTIP grammar
-          tooltipRoleColumns.push(colId);
-          console.log("[KanbanViz] Column", i, ":", displayName, "-> TOOLTIP grammar");
+          hasLogicalLists = false;
+          console.log("[KanbanViz] Direct logical-edge lists were empty after filtering; using fallback");
         }
       }
 
-      console.log("[KanbanViz] Separated - ROW:", rowRoleColumns.length, "COLOR:", colorRoleColumns.length, "TOOLTIP:", tooltipRoleColumns.length);
+      if (!hasLogicalLists) {
+        for (var i = 0; i < rowCols.length; i++) {
+          var colId = rowCols[i];
+          var displayName = resolveDisplayName(colId);
+          var logicalRole = getLogicalRole(colId);
+
+          if (logicalRole === datamodelshapes.Logical.ROW || logicalRole === "row") {
+            rowRoleColumns.push(colId);
+            console.log("[KanbanViz] Column", i, ":", displayName, "-> ROW logical role");
+          } else if (logicalRole === datamodelshapes.Logical.COLOR || logicalRole === "color") {
+            colorRoleColumns.push(colId);
+            console.log("[KanbanViz] Column", i, ":", displayName, "-> COLOR logical role");
+          } else if (logicalRole === datamodelshapes.Logical.GLYPH || logicalRole === "glyph") {
+            glyphRoleColumns.push(colId);
+            console.log("[KanbanViz] Column", i, ":", displayName, "-> GLYPH logical role");
+          } else if (logicalRole === datamodelshapes.Logical.SIZE || logicalRole === "size") {
+            sizeRoleColumns.push(colId);
+            console.log("[KanbanViz] Column", i, ":", displayName, "-> SIZE logical role");
+          } else if (logicalRole === datamodelshapes.Logical.TOOLTIP || logicalRole === "tooltip") {
+            tooltipRoleColumns.push(colId);
+            console.log("[KanbanViz] Column", i, ":", displayName, "-> TOOLTIP logical role");
+          } else {
+            unresolvedColumns.push(colId);
+            console.log("[KanbanViz] Column", i, ":", displayName, "-> unresolved logical role");
+          }
+        }
+
+        // Positional fallback if per-column logical role detection is unavailable
+        if (rowRoleColumns.length === 0 && colorRoleColumns.length === 0 && glyphRoleColumns.length === 0 && sizeRoleColumns.length === 0 && tooltipRoleColumns.length === 0) {
+          // Heuristic recovery: detect boolean-like columns as Conditional Formatting (GLYPH)
+          // so they don't shift into Rows slots when metadata is unavailable.
+          var sampleRows = 0;
+          try { sampleRows = Math.min(80, oDataLayout.getEdgeExtent(datamodelshapes.Physical.ROW) || 0); } catch (_) { sampleRows = 0; }
+          if (sampleRows <= 0) sampleRows = 30;
+
+          function isBoolLikeToken(v) {
+            if (v === null || v === undefined) return false;
+            var s = String(v).trim().toLowerCase();
+            if (s === "") return false;
+            return s === "y" || s === "yes" || s === "d" || s === "da" || s === "1" || s === "true" ||
+                   s === "n" || s === "no" || s === "0" || s === "false";
+          }
+
+          var glyphCandidateIdx = [];
+          for (var gc = 0; gc < rowCols.length; gc++) {
+            var nonEmpty = 0;
+            var boolLike = 0;
+            var uniq = {};
+            for (var sr = 0; sr < sampleRows; sr++) {
+              var raw = null;
+              try { raw = oDataLayout.getValue(datamodelshapes.Physical.ROW, gc, sr, false); } catch (_) { raw = null; }
+              if (raw === null || raw === undefined) continue;
+              var txt = String(raw).trim();
+              if (txt === "") continue;
+              nonEmpty++;
+              uniq[txt.toLowerCase()] = true;
+              if (isBoolLikeToken(txt)) boolLike++;
+            }
+
+            var uniqCount = Object.keys(uniq).length;
+            if (nonEmpty > 0 && (boolLike / nonEmpty) >= 0.8 && uniqCount <= 4) {
+              glyphCandidateIdx.push(gc);
+            }
+          }
+
+          if (glyphCandidateIdx.length > 0) {
+            // Use first two bool-like columns as RED/YELLOW condition slots
+            glyphCandidateIdx.sort(function(a, b){ return a - b; });
+            var g1 = glyphCandidateIdx[0];
+            var g2 = glyphCandidateIdx.length > 1 ? glyphCandidateIdx[1] : -1;
+            glyphRoleColumns.push(rowCols[g1]);
+            if (g2 >= 0) glyphRoleColumns.push(rowCols[g2]);
+
+            // Color is the nearest preceding column before first glyph (if any)
+            var colorIdx = g1 - 1;
+            if (colorIdx >= 0) {
+              colorRoleColumns.push(rowCols[colorIdx]);
+            }
+
+            // Rows are columns before color (or before first glyph if color missing)
+            var rowEndExclusive = (colorIdx >= 0) ? colorIdx : g1;
+            for (var ri = 0; ri < rowEndExclusive; ri++) {
+              rowRoleColumns.push(rowCols[ri]);
+            }
+
+            // Tooltip columns are all columns after the last glyph column
+            var lastGlyph = (g2 >= 0) ? g2 : g1;
+            for (var ti = lastGlyph + 1; ti < rowCols.length; ti++) {
+              tooltipRoleColumns.push(rowCols[ti]);
+            }
+
+            console.log("[KanbanViz] Positional heuristic split (bool-like GLYPH recovery) used");
+          } else {
+            // Final fallback: configured positional split
+            for (var j = 0; j < rowCols.length; j++) {
+              var colId2 = rowCols[j];
+              if (j < rowRoleCount) {
+                rowRoleColumns.push(colId2);
+              } else if (j < rowRoleCount + colorRoleCount) {
+                colorRoleColumns.push(colId2);
+              } else if (j < rowRoleCount + colorRoleCount + glyphRoleCount) {
+                glyphRoleColumns.push(colId2);
+              } else if (j < rowRoleCount + colorRoleCount + glyphRoleCount + sizeRoleCount) {
+                sizeRoleColumns.push(colId2);
+              } else {
+                tooltipRoleColumns.push(colId2);
+              }
+            }
+            console.log("[KanbanViz] Using configured positional fallback split");
+          }
+        } else if (unresolvedColumns.length > 0) {
+          // Keep unresolved columns visible in tooltip instead of dropping data
+          tooltipRoleColumns = tooltipRoleColumns.concat(unresolvedColumns);
+        }
+      }
+
+      console.log("[KanbanViz] Separated - ROW:", rowRoleColumns.length, "COLOR:", colorRoleColumns.length, "GLYPH:", glyphRoleColumns.length, "SIZE:", sizeRoleColumns.length, "TOOLTIP:", tooltipRoleColumns.length);
 
       // Column assignments based on FIXED layer positions (not array order)
-      // Rows grammar: 4 columns (layers 0-3)
+      // Rows grammar: 5 columns (layers 0-4)
       var taskColId = rowRoleColumns[0] || null;           // Layer 0: Task name (Rows - 1st)
       var subtitle1ColId = rowRoleColumns[1] || null;      // Layer 1: Subtitle line 1 (Rows - 2nd)
       var subtitle2ColId = rowRoleColumns[2] || null;      // Layer 2: Subtitle line 2 (Rows - 3rd)
-      var subtitle3ColId = rowRoleColumns[3] || null;      // Layer 3: Subtitle line 3 (Rows - 4th) - bottom of card
-      var colorColId = colorRoleColumns[0] || null;        // Layer 4: Color category (Color grammar)
+      var subtitle3ColId = rowRoleColumns[3] || null;      // Layer 3: Subtitle line 3 (Rows - 4th)
+      var bottomAttrColId = rowRoleColumns[4] || null;     // Layer 4: Bottom label (Rows - 5th)
+      var colorColId = colorRoleColumns[0] || null;        // Layer 5: Color category (Color grammar)
 
-      // Detect RED and YELLOW columns based on edge labels within TOOLTIP role columns
-      var redConditionIndex = -1;
-      var yellowConditionIndex = -1;
+      // Primary source for conditional formatting: GLYPH role
+      // Fallback for legacy reports: tooltip columns (edge labels, then first/second tooltip)
+      var conditionColId = glyphRoleColumns[0] || null;
+      var conditionColId2 = glyphRoleColumns[1] || null;
 
-      // Check tooltip columns for color roles
-      for (var i = 0; i < tooltipRoleColumns.length; i++) {
-        var colorRole = getEdgeLabelProperty(tooltipRoleColumns[i], 'colorRole');
+      if (!conditionColId && !conditionColId2 && tooltipRoleColumns.length > 0) {
+        var redConditionIndex = -1;
+        var yellowConditionIndex = -1;
 
-        if (colorRole === 'red' && redConditionIndex === -1) {
-          redConditionIndex = i;
-        } else if (colorRole === 'yellow' && yellowConditionIndex === -1) {
-          yellowConditionIndex = i;
+        for (var i = 0; i < tooltipRoleColumns.length; i++) {
+          var colorRole = getEdgeLabelProperty(tooltipRoleColumns[i], 'colorRole');
+          if (colorRole === 'red' && redConditionIndex === -1) {
+            redConditionIndex = i;
+          } else if (colorRole === 'yellow' && yellowConditionIndex === -1) {
+            yellowConditionIndex = i;
+          }
         }
+
+        if (redConditionIndex === -1) redConditionIndex = 0;
+        if (yellowConditionIndex === -1) yellowConditionIndex = 1;
+
+        conditionColId = tooltipRoleColumns[redConditionIndex] || null;
+        conditionColId2 = tooltipRoleColumns[yellowConditionIndex] || null;
       }
 
-      // Fall back to default positions within tooltip columns if no edge labels set
-      if (redConditionIndex === -1) redConditionIndex = 0;    // Default: 1st tooltip column
-      if (yellowConditionIndex === -1) yellowConditionIndex = 1;  // Default: 2nd tooltip column
+      // Safety: when Rows[5] is missing, never let Color/Condition columns leak into bottom slot.
+      if (bottomAttrColId &&
+          (sameRowColumn(bottomAttrColId, colorColId) ||
+           sameRowColumn(bottomAttrColId, conditionColId) ||
+           sameRowColumn(bottomAttrColId, conditionColId2))) {
+        bottomAttrColId = null;
+      }
 
-      var conditionColId = tooltipRoleColumns[redConditionIndex] || null;
-      var conditionColId2 = tooltipRoleColumns[yellowConditionIndex] || null;
+      // If logical ROW count is explicitly < 5, bottom slot must stay blank.
+      if (explicitRowCount > 0 && explicitRowCount < 5) {
+        bottomAttrColId = null;
+      }
 
-      // Calculate actual Physical.ROW layer numbers for condition columns
-      // Structure: ROW columns + COLOR columns + TOOLTIP columns
-      // RED is first tooltip column, YELLOW is second tooltip column
-      var redConditionLayer = rowRoleCount + colorRoleCount + redConditionIndex;
-      var yellowConditionLayer = rowRoleCount + colorRoleCount + yellowConditionIndex;
+      // Safety: if title mapping failed, use first physical row layer as title.
+      if (!taskColId && rowCols.length > 0) {
+        taskColId = rowCols[0];
+      }
+
+      // Resolve actual Physical.ROW layer numbers from column IDs
+      var redConditionLayer = conditionColId ? getRowLayerIndex(conditionColId) : -1;
+      var yellowConditionLayer = conditionColId2 ? getRowLayerIndex(conditionColId2) : -1;
 
       console.log("[KanbanViz] Condition layers - RED:", redConditionLayer, "YELLOW:", yellowConditionLayer);
+
+      // Compute stable slot boundaries.
+      // Row slot count must never depend on Color layer position.
+      var colorLayer = colorColId ? getRowLayerIndex(colorColId) : -1;
+      if (colorLayer < 0 && redConditionLayer > 0) {
+        colorLayer = redConditionLayer - 1;
+      }
+      if (colorLayer < 0 && yellowConditionLayer > 0) {
+        colorLayer = yellowConditionLayer - 1;
+      }
+
+      var explicitColorCount = logicalColorCols.length;
+      var explicitGlyphCount = logicalGlyphCols.length;
+      var explicitSizeCount = logicalSizeCols.length;
+      var explicitTooltipCount = logicalTooltipCols.length;
+
+      var rowSlotCount = 0;
+      if (explicitRowCount > 0) {
+        rowSlotCount = explicitRowCount;
+      } else if (rowRoleColumns.length > 0) {
+        rowSlotCount = rowRoleColumns.length;
+      } else if (rowCols.length > 0) {
+        // Safe fallback when logical row count is unavailable.
+        rowSlotCount = rowCols.length - explicitColorCount - explicitGlyphCount - explicitSizeCount - explicitTooltipCount;
+      }
+
+      if (rowSlotCount < 1 && rowCols.length > 0) rowSlotCount = 1;
+      if (rowSlotCount > 5) rowSlotCount = 5;
+
+      var taskLayer = (rowSlotCount >= 1) ? 0 : -1;
+      var subtitle1Layer = (rowSlotCount >= 2) ? 1 : -1;
+      var subtitle2Layer = (rowSlotCount >= 3) ? 2 : -1;
+      var subtitle3Layer = (rowSlotCount >= 4) ? 3 : -1;
+      var bottomAttrLayer = (rowSlotCount >= 5) ? 4 : -1;
+
+      // If Color is explicitly present, it starts right after row slots.
+      if (explicitColorCount > 0) {
+        colorLayer = rowSlotCount;
+      }
+
+      var urlColId = sizeRoleColumns[0] || logicalSizeCols[0] || null;
+      var urlLayer = urlColId ? getRowLayerIndex(urlColId) : -1;
+      if (urlLayer < 0 && explicitSizeCount > 0) {
+        urlLayer = rowSlotCount + explicitColorCount + explicitGlyphCount;
+      }
+      var tooltipStartLayer = rowSlotCount + explicitColorCount + explicitGlyphCount + explicitSizeCount;
 
       var taskDisplayName = resolveDisplayName(taskColId) || "Task";
       var subtitle1DisplayName = resolveDisplayName(subtitle1ColId) || "";
       var subtitle2DisplayName = resolveDisplayName(subtitle2ColId) || "";
       var subtitle3DisplayName = resolveDisplayName(subtitle3ColId) || "";
+      var bottomAttrDisplayName = resolveDisplayName(bottomAttrColId) || "";
       var colorDisplayName = resolveDisplayName(colorColId) || "Color";
+      var urlDisplayName = resolveDisplayName(urlColId) || "URL";
       var conditionDisplayName = resolveDisplayName(conditionColId) || "Condition";
       var conditionDisplayName2 = resolveDisplayName(conditionColId2) || "Condition 2";
 
@@ -722,19 +1234,36 @@ define([
         }
       } catch (e) {}
 
-      // Determine where additional tooltip columns start
-      // Structure: ROW columns + COLOR columns + 2 condition flag columns (RED+YELLOW) + additional tooltip columns
-      var firstTooltipLayer = rowRoleCount + colorRoleCount;  // First tooltip column (for RED condition)
-      var tooltipStartLayer = firstTooltipLayer + 2;           // Additional tooltip columns start after RED (layer 5) and YELLOW (layer 6)
+      // Additional tooltip columns are tooltip-role columns excluding non-tooltip helper slots.
+      // Keep their physical order so labels and values stay aligned.
+      var additionalTooltipColIds = [];
+      for (var tc = 0; tc < tooltipRoleColumns.length; tc++) {
+        var tipColId = tooltipRoleColumns[tc];
+        if (tipColId !== conditionColId &&
+            tipColId !== conditionColId2 &&
+            tipColId !== urlColId &&
+            !sameRowColumn(tipColId, urlColId)) {
+          additionalTooltipColIds.push(tipColId);
+        }
+      }
+      additionalTooltipColIds.sort(function(a, b) {
+        return getRowLayerIndex(a) - getRowLayerIndex(b);
+      });
 
-      console.log("[KanbanViz] Tooltip layers - First:", firstTooltipLayer, "Additional start at:", tooltipStartLayer);
+      function resolveTooltipDisplayName(tooltipColId, tooltipIdx) {
+        var directName = resolveDisplayName(tooltipColId);
+        if (directName && !/^Attr\s+\d+$/i.test(directName)) {
+          return directName;
+        }
 
-      // Get row count
-      var rowCount = 0;
-      try {
-        rowCount = oDataLayout.getEdgeExtent(datamodelshapes.Physical.ROW) || 0;
-      } catch (e) {
-        rowCount = 0;
+        if (logicalTooltipCols && logicalTooltipCols.length > tooltipIdx) {
+          var logicalName = resolveDisplayName(logicalTooltipCols[tooltipIdx]);
+          if (logicalName && !/^Attr\s+\d+$/i.test(logicalName)) {
+            return logicalName;
+          }
+        }
+
+        return "Attr " + (tooltipIdx + 1);
       }
 
       console.log('[KanbanViz] Row count:', rowCount);
@@ -742,92 +1271,94 @@ define([
       // Iterate through all rows
       for (var r = 0; r < Math.max(rowCount, 1); r++) {
 
+        function getValueAtLayer(layerIdx, rowIdx) {
+          if (layerIdx == null || layerIdx < 0) return null;
+          try {
+            return oDataLayout.getValue(datamodelshapes.Physical.ROW, layerIdx, rowIdx, false);
+          } catch (_) {
+            return null;
+          }
+        }
+
         // Extract values using the separated column arrays
         // This allows us to read columns based on their logical role, not physical position
 
-        // Task name (1st ROW column)
+        // Task name (Rows[1])
         var taskName = null;
         try {
-          if (taskColId) {
-            var taskLayerIdx = rowCols.indexOf(taskColId);
-            if (taskLayerIdx >= 0) {
-              taskName = oDataLayout.getValue(datamodelshapes.Physical.ROW, taskLayerIdx, r, false);
-            }
-          }
+          taskName = getValueAtLayer(taskLayer, r);
         } catch (e) {
           taskName = null;
         }
 
-        // Subtitle line 1 (2nd ROW column)
+        // Subtitle line 1 (Rows[2])
         var subtitle1 = null;
         try {
-          if (subtitle1ColId) {
-            var sub1LayerIdx = rowCols.indexOf(subtitle1ColId);
-            if (sub1LayerIdx >= 0) {
-              subtitle1 = oDataLayout.getValue(datamodelshapes.Physical.ROW, sub1LayerIdx, r, false);
-            }
-          }
+          subtitle1 = getValueAtLayer(subtitle1Layer, r);
         } catch (e) {
           subtitle1 = null;
         }
 
-        // Subtitle line 2 (3rd ROW column) - with date formatting
+        // Subtitle line 2 (Rows[3]) - with date formatting
         var subtitle2 = null;
         try {
-          if (subtitle2ColId) {
-            var sub2LayerIdx = rowCols.indexOf(subtitle2ColId);
-            if (sub2LayerIdx >= 0) {
-              subtitle2 = oDataLayout.getValue(datamodelshapes.Physical.ROW, sub2LayerIdx, r, false);
-              // Apply date formatting if subtitle2 looks like a date
-              if (subtitle2 !== null && subtitle2 !== undefined && subtitle2 !== "") {
-                subtitle2 = formatDate(String(subtitle2), dateFormat);
-              }
-            }
+          subtitle2 = getValueAtLayer(subtitle2Layer, r);
+          if (subtitle2 !== null && subtitle2 !== undefined && subtitle2 !== "") {
+            subtitle2 = formatDate(String(subtitle2), dateFormat);
           }
         } catch (e) {
           subtitle2 = null;
         }
 
-        // Subtitle line 3 (4th ROW column) - displayed at bottom of card
+        // Subtitle line 3 (Rows[4])
         var subtitle3 = null;
         try {
-          if (subtitle3ColId) {
-            var sub3LayerIdx = rowCols.indexOf(subtitle3ColId);
-            if (sub3LayerIdx >= 0) {
-              subtitle3 = oDataLayout.getValue(datamodelshapes.Physical.ROW, sub3LayerIdx, r, false);
-            }
-          }
+          subtitle3 = getValueAtLayer(subtitle3Layer, r);
         } catch (e) {
           subtitle3 = null;
         }
 
-        // Color category (COLOR column)
+        // Bottom label (Rows[5]) - stays blank when Rows[5] missing
+        var bottomAttr = null;
+        try {
+          bottomAttr = getValueAtLayer(bottomAttrLayer, r);
+        } catch (e) {
+          bottomAttr = null;
+        }
+
+        // Color category (Color[1])
         var colorVal = null;
         try {
-          if (colorColId) {
-            var colorLayerIdx = rowCols.indexOf(colorColId);
-            if (colorLayerIdx >= 0) {
-              colorVal = oDataLayout.getValue(datamodelshapes.Physical.ROW, colorLayerIdx, r, false);
-            }
-          }
+          colorVal = getValueAtLayer(colorLayer, r);
         } catch (e) {
           colorVal = null;
         }
 
-        // RED condition flag (from column with colorRole='red' edge label)
+        var urlVal = null;
+        try {
+          urlVal = getValueAtLayer(urlLayer, r);
+        } catch (e) {
+          urlVal = null;
+        }
+
+        var cardLinkUrl = normalizeUrl(urlVal);
+
+        // RED condition flag (from Shape/Conditional Formatting 1st column, or legacy tooltip fallback)
         // Check if value indicates "yes" (Y, Yes, D, Da, 1, TRUE, true) for RED
         var conditionFlagRed = false;
         var conditionValueRed = null;
         try {
-          var redVal = oDataLayout.getValue(datamodelshapes.Physical.ROW, redConditionLayer, r, false);
-          if (redVal !== null && redVal !== undefined && String(redVal).trim() !== "") {
-            conditionValueRed = String(redVal).trim();
-            var redValLower = conditionValueRed.toLowerCase();
-            // Check if value is a positive indicator (Y/Yes/D/Da/1/TRUE)
-            if (redValLower === 'y' || redValLower === 'yes' ||
-                redValLower === 'd' || redValLower === 'da' ||
-                redValLower === '1' || redValLower === 'true') {
-              conditionFlagRed = true;
+          if (redConditionLayer >= 0) {
+            var redVal = oDataLayout.getValue(datamodelshapes.Physical.ROW, redConditionLayer, r, false);
+            if (redVal !== null && redVal !== undefined && String(redVal).trim() !== "") {
+              conditionValueRed = String(redVal).trim();
+              var redValLower = conditionValueRed.toLowerCase();
+              // Check if value is a positive indicator (Y/Yes/D/Da/1/TRUE)
+              if (redValLower === 'y' || redValLower === 'yes' ||
+                  redValLower === 'd' || redValLower === 'da' ||
+                  redValLower === '1' || redValLower === 'true') {
+                conditionFlagRed = true;
+              }
             }
           }
         } catch (e) {
@@ -835,20 +1366,22 @@ define([
           conditionValueRed = null;
         }
 
-        // YELLOW condition flag (from column with colorRole='yellow' edge label)
+        // YELLOW condition flag (from Shape/Conditional Formatting 2nd column, or legacy tooltip fallback)
         // Check if value indicates "yes" (Y, Yes, D, Da, 1, TRUE, true) for YELLOW
         var conditionFlagYellow = false;
         var conditionValueYellow = null;
         try {
-          var yellowVal = oDataLayout.getValue(datamodelshapes.Physical.ROW, yellowConditionLayer, r, false);
-          if (yellowVal !== null && yellowVal !== undefined && String(yellowVal).trim() !== "") {
-            conditionValueYellow = String(yellowVal).trim();
-            var yellowValLower = conditionValueYellow.toLowerCase();
-            // Check if value is a positive indicator (Y/Yes/D/Da/1/TRUE)
-            if (yellowValLower === 'y' || yellowValLower === 'yes' ||
-                yellowValLower === 'd' || yellowValLower === 'da' ||
-                yellowValLower === '1' || yellowValLower === 'true') {
-              conditionFlagYellow = true;
+          if (yellowConditionLayer >= 0) {
+            var yellowVal = oDataLayout.getValue(datamodelshapes.Physical.ROW, yellowConditionLayer, r, false);
+            if (yellowVal !== null && yellowVal !== undefined && String(yellowVal).trim() !== "") {
+              conditionValueYellow = String(yellowVal).trim();
+              var yellowValLower = conditionValueYellow.toLowerCase();
+              // Check if value is a positive indicator (Y/Yes/D/Da/1/TRUE)
+              if (yellowValLower === 'y' || yellowValLower === 'yes' ||
+                  yellowValLower === 'd' || yellowValLower === 'da' ||
+                  yellowValLower === '1' || yellowValLower === 'true') {
+                conditionFlagYellow = true;
+              }
             }
           }
         } catch (e) {
@@ -866,66 +1399,67 @@ define([
           }
         } catch (e) {}
 
-        // Layers 3+: Additional tooltip columns
+        // Additional tooltip columns
         var tooltipKVPairs = [];
-        for (var layerIdx = tooltipStartLayer; layerIdx < rowCols.length; layerIdx++) {
+        var tooltipFieldCount = additionalTooltipColIds.length;
+        for (var tci = 0; tci < tooltipFieldCount; tci++) {
           try {
-            var tVal = oDataLayout.getValue(datamodelshapes.Physical.ROW, layerIdx, r, false);
+            var tooltipColId = additionalTooltipColIds[tci] || null;
+            var tooltipLayerIdx = tooltipStartLayer + tci;
+            var tVal = oDataLayout.getValue(datamodelshapes.Physical.ROW, tooltipLayerIdx, r, false);
             if (tVal !== null && tVal !== undefined && String(tVal).trim() !== "") {
-              var tName = resolveDisplayName(rowCols[layerIdx]) || ("Attr " + (layerIdx - tooltipStartLayer + 1));
+              var tName = resolveTooltipDisplayName(tooltipColId, tci);
               tooltipKVPairs.push({ k: tName, v: String(tVal) });
             }
           } catch (e) {}
         }
 
-        // Build tooltip HTML
+        // Build tooltip HTML.
+        var tooltipLines = [];
+
         function formatPct(pctNum) {
           return (pctNum == null || isNaN(pctNum)) ? "" : ((Math.round(pctNum * 10000) / 100) + "%");
         }
 
-        var tooltipLines = [];
-
-        // Subtitle 1 (if present)
         if (subtitle1 != null && String(subtitle1) !== "" && subtitle1DisplayName) {
           tooltipLines.push("<span class='kt-line'><span class='kt-k'>" + escapeHtml(subtitle1DisplayName) + ":</span> <span class='kt-v'>" + escapeHtml(subtitle1) + "</span></span>");
         }
 
-        // Subtitle 2 (if present)
         if (subtitle2 != null && String(subtitle2) !== "" && subtitle2DisplayName) {
           tooltipLines.push("<span class='kt-line'><span class='kt-k'>" + escapeHtml(subtitle2DisplayName) + ":</span> <span class='kt-v'>" + escapeHtml(subtitle2) + "</span></span>");
         }
 
-        // Subtitle 3 (if present)
         if (subtitle3 != null && String(subtitle3) !== "" && subtitle3DisplayName) {
           tooltipLines.push("<span class='kt-line'><span class='kt-k'>" + escapeHtml(subtitle3DisplayName) + ":</span> <span class='kt-v'>" + escapeHtml(subtitle3) + "</span></span>");
         }
 
-        // Task
+        if (bottomAttr != null && String(bottomAttr) !== "" && bottomAttrDisplayName) {
+          tooltipLines.push("<span class='kt-line'><span class='kt-k'>" + escapeHtml(bottomAttrDisplayName) + ":</span> <span class='kt-v'>" + escapeHtml(bottomAttr) + "</span></span>");
+        }
+
         if (taskName != null && String(taskName) !== "") {
           tooltipLines.push("<span class='kt-line'><span class='kt-k'>" + escapeHtml(taskDisplayName) + ":</span> <span class='kt-v'>" + escapeHtml(taskName) + "</span></span>");
         }
 
-        // Completion
         tooltipLines.push("<span class='kt-line'><span class='kt-k'>" + escapeHtml(measureDisplayName) + ":</span> <span class='kt-v'>" + escapeHtml(formatPct(pctNum)) + "</span></span>");
 
-        // Color category
         if (colorVal != null && String(colorVal) !== "") {
           tooltipLines.push("<span class='kt-line'><span class='kt-k'>" + escapeHtml(colorDisplayName) + ":</span> <span class='kt-v'>" + escapeHtml(String(colorVal)) + "</span></span>");
         }
 
-        // RED condition flag (show in tooltip if value exists)
-        if (conditionValueRed != null && String(conditionValueRed) !== "") {
-          tooltipLines.push("<span class='kt-line'><span class='kt-k'>" + escapeHtml(conditionDisplayName) + ":</span> <span class='kt-v'>" + escapeHtml(String(conditionValueRed)) + "</span></span>");
-        }
-
-        // YELLOW condition flag (show in tooltip if value exists)
-        if (conditionValueYellow != null && String(conditionValueYellow) !== "") {
-          tooltipLines.push("<span class='kt-line'><span class='kt-k'>" + escapeHtml(conditionDisplayName2) + ":</span> <span class='kt-v'>" + escapeHtml(String(conditionValueYellow)) + "</span></span>");
-        }
-
-        // Additional tooltip fields
         for (var ti = 0; ti < tooltipKVPairs.length; ti++) {
           var kv = tooltipKVPairs[ti];
+          if (/^Attr\s+\d+$/i.test(kv.k)) {
+            var kvVal = String(kv.v || "").trim();
+            var rawUrl = String(urlVal || "").trim();
+            var rawCondRed = String(conditionValueRed || "").trim();
+            var rawCondYellow = String(conditionValueYellow || "").trim();
+            if ((rawUrl && kvVal === rawUrl) ||
+                (rawCondRed && kvVal === rawCondRed) ||
+                (rawCondYellow && kvVal === rawCondYellow)) {
+              continue;
+            }
+          }
           tooltipLines.push("<span class='kt-line'><span class='kt-k'>" + escapeHtml(kv.k) + ":</span> <span class='kt-v'>" + escapeHtml(kv.v) + "</span></span>");
         }
 
@@ -938,10 +1472,12 @@ define([
           subtitle1: (subtitle1 != null ? String(subtitle1) : ""),
           subtitle2: (subtitle2 != null ? String(subtitle2) : ""),
           subtitle3: (subtitle3 != null ? String(subtitle3) : ""),
+          bottomAttr: (bottomAttr != null ? String(bottomAttr) : ""),
           pct: pctNum,
           pctComplete: pctNum,
           category: (colorVal != null ? String(colorVal) : ""),
           colorKey: (colorVal != null ? String(colorVal) : ""),
+          url: cardLinkUrl,
           lane: getLaneName(pctNum),
           measureLabel: measureDisplayName,
           conditionFlagRed: conditionFlagRed,           // RED condition flag (boolean)
@@ -983,16 +1519,23 @@ define([
       if (!lanes[t.lane]) lanes[t.lane] = [];
       lanes[t.lane].push(t);
     }
+    Object.keys(lanes).forEach(function(laneName) {
+      lanes[laneName].sort(compareTasksForCardOrder);
+    });
     return lanes;
   }
 
   /**
    * Render a single task card.
    */
-  function renderCard(task, colors) {
+  function renderCard(task, colors, options) {
     var pctDisplay = task.pct == null || isNaN(task.pct)
       ? (task.lane === messages.LANE_100_PERCENT ? messages.LANE_100_PERCENT : "-")
       : (Math.round(task.pct * 10000) / 100) + "%";
+    var showCompletionPct = normalizeBooleanOption(options && options.showCompletionPct, true);
+    var titleAlignStyle = getTextAlignStyle(options && options.row1Alignment, "center");
+    var bodyAlignStyle = getFlexAlignStyle(options && options.row4Alignment, "center");
+    var bottomAlignStyle = getTextAlignStyle(options && options.row5Alignment, "left");
 
     var metricLabel = task.measureLabel || "Completion";
     var stripeColor = getBorderColor(task);
@@ -1032,32 +1575,40 @@ define([
             // Subtitle row with table layout - 3 columns: left (ID), center (%), right (Date)
             "<table class='kanban-card-subtitle-table'><tr>" +
               (task.subtitle1
-                ? "<td class='kanban-card-subtitle kanban-card-subtitle-left'>" + escapeHtml(task.subtitle1) + "</td>"
+                ? "<td class='kanban-card-subtitle kanban-card-subtitle-left'>" +
+                    (task.url
+                      ? "<a class='kanban-card-title-link' href='" + escapeHtml(task.url) + "' target='_blank' rel='noopener noreferrer'>ID: " + escapeHtml(task.subtitle1) + "</a>"
+                      : "ID: " + escapeHtml(task.subtitle1)
+                    ) +
+                  "</td>"
                 : "<td></td>"
               ) +
               // Center column for percentage
-              "<td class='kanban-card-subtitle kanban-card-subtitle-center'>(" + escapeHtml(pctDisplay) + ")</td>" +
+              (showCompletionPct
+                ? "<td class='kanban-card-subtitle kanban-card-subtitle-center'>(" + escapeHtml(pctDisplay) + ")</td>"
+                : "<td></td>"
+              ) +
               (task.subtitle2
                 ? "<td class='kanban-card-subtitle kanban-card-subtitle-right'>" + escapeHtml(task.subtitle2) + "</td>"
                 : "<td></td>"
               ) +
             "</tr></table>" +
             // Main task title
-            "<div class='kanban-card-title'>" +
+            "<div class='kanban-card-title' style='" + titleAlignStyle + "'>" +
               escapeHtml(task.title) +
             "</div>" +
           "</div>" +
           // Center position (below title) - subtitle3 (4th ROW column)
           (task.subtitle3
-            ? "<div class='kanban-card-right'>" +
+            ? "<div class='kanban-card-right' style='" + bodyAlignStyle + "'>" +
                 escapeHtml(task.subtitle3) +
               "</div>"
             : ""
           ) +
-          // Bottom row - category (COLOR column)
-          (task.category
-            ? "<div class='kanban-card-bottom'>" +
-                escapeHtml(task.category) +
+          // Bottom row - 5th Rows attribute only
+          (task.bottomAttr
+            ? "<div class='kanban-card-bottom' style='" + bottomAlignStyle + "'>" +
+                escapeHtml(task.bottomAttr) +
               "</div>"
             : ""
           ) +
@@ -1070,17 +1621,17 @@ define([
    * Render a lane (column).
    * laneName is the lane value (e.g. "0%", "10%") used for logic
    */
-  function renderLane(laneName, taskList, colors) {
+  function renderLane(laneName, taskList, colors, options) {
     var count = taskList ? taskList.length : 0;
     var headerText = getLaneHeader(laneName); // Get display text for header
-    var headerLabel = escapeHtml(headerText) + " (" + messages.TASKS_LABEL + ": " + count + ")";
+    var headerLabel = escapeHtml(headerText) + " (" + count + ")";
     return (
       "<div class='kanban-column'>" +
         "<div class='kanban-column-header'>" +
            headerLabel +
         "</div>" +
         "<div class='kanban-card-list'>" +
-           taskList.map(function(task) { return renderCard(task, colors); }).join("") +
+           taskList.map(function(task) { return renderCard(task, colors, options); }).join("") +
         "</div>" +
       "</div>"
     );
@@ -1089,9 +1640,28 @@ define([
   /**
    * Tooltip and selection event handler (delegated)
    */
+  function detachEventHandlers(selfRef) {
+    if (!selfRef || !selfRef._boundRootElem || !selfRef._boundHandlers) return;
+    var rootElem = selfRef._boundRootElem;
+    var handlers = selfRef._boundHandlers;
+    if (handlers.mousemove) rootElem.removeEventListener('mousemove', handlers.mousemove);
+    if (handlers.mouseleave) rootElem.removeEventListener('mouseleave', handlers.mouseleave);
+    if (handlers.mouseout) rootElem.removeEventListener('mouseout', handlers.mouseout);
+    if (handlers.scroll) rootElem.removeEventListener('scroll', handlers.scroll);
+    if (handlers.click) rootElem.removeEventListener('click', handlers.click);
+    selfRef._boundRootElem = null;
+    selfRef._boundHandlers = null;
+  }
+
   function attachEventHandlers(rootElem, selfRef) {
+    if (!rootElem || !selfRef) return;
+    if (selfRef._boundRootElem === rootElem && selfRef._boundHandlers) return;
+    detachEventHandlers(selfRef);
+
+    var handlers = {};
+
     // Tooltip handlers
-    rootElem.addEventListener('mousemove', function(e) {
+    handlers.mousemove = function(e) {
       var card = e.target.closest && e.target.closest('.kanban-card');
       if (!card) { 
         selfRef._hideTooltip(); 
@@ -1120,25 +1690,35 @@ define([
       }
       
       selfRef._showTooltip(task.tooltipHtml, e.clientX, e.clientY);
-    });
+    };
+    rootElem.addEventListener('mousemove', handlers.mousemove);
 
-    rootElem.addEventListener('mouseleave', function() {
+    handlers.mouseleave = function() {
       selfRef._hideTooltip();
-    });
+    };
+    rootElem.addEventListener('mouseleave', handlers.mouseleave);
 
-    rootElem.addEventListener('mouseout', function(e) {
+    handlers.mouseout = function(e) {
       var to = e.relatedTarget;
       if (!to || !rootElem.contains(to)) {
         selfRef._hideTooltip();
       }
-    });
+    };
+    rootElem.addEventListener('mouseout', handlers.mouseout);
 
-    rootElem.addEventListener('scroll', function() {
+    handlers.scroll = function() {
       selfRef._hideTooltip();
-    }, { passive: true });
+    };
+    rootElem.addEventListener('scroll', handlers.scroll, { passive: true });
 
     // SELECTION EVENT HANDLERS
-    rootElem.addEventListener('click', function(e) {
+    handlers.click = function(e) {
+      var titleLink = e.target.closest && e.target.closest('.kanban-card-title-link');
+      if (titleLink) {
+        e.stopPropagation();
+        return;
+      }
+
       var card = e.target.closest && e.target.closest('.kanban-card');
       if (!card) {
         if (!e.target.closest('.kanban-card')) {
@@ -1168,7 +1748,11 @@ define([
       var isCtrlKey = e.ctrlKey || e.metaKey;
       selfRef._fireSelectionEvent(task, isCtrlKey);
       selfRef._updateCardSelectionVisuals();
-    });
+    };
+    rootElem.addEventListener('click', handlers.click);
+
+    selfRef._boundRootElem = rootElem;
+    selfRef._boundHandlers = handlers;
   }
 
   /**
@@ -1189,18 +1773,33 @@ define([
       elContainer.innerHTML = "";
 
       var oDataLayout = null;
+      var oLogicalDataModel = null;
+      var oDataModel = null;
       try {
         if (oTransientRenderingContext && typeof oTransientRenderingContext.get === "function") {
           oDataLayout = oTransientRenderingContext.get(dataviz.DataContextProperty.DATA_LAYOUT);
+          try {
+            if (dataviz.DataContextProperty.LOGICAL_DATA_MODEL) {
+              oLogicalDataModel = oTransientRenderingContext.get(dataviz.DataContextProperty.LOGICAL_DATA_MODEL);
+            }
+          } catch (_) {}
+          try {
+            if (dataviz.DataContextProperty.DATA_MODEL) {
+              oDataModel = oTransientRenderingContext.get(dataviz.DataContextProperty.DATA_MODEL);
+            }
+          } catch (_) {}
         }
       } catch (eDL) {
         try { _logger.warn("No DATA_LAYOUT in render context", eDL); } catch(_) {}
       }
       
       this._currentDataLayout = oDataLayout;
+      this._currentLogicalDataModel = oLogicalDataModel || null;
+      this._currentDataModel = oDataModel || this.getRootDataModel() || null;
 
       // Get user's date format preference
       var options = this.getViewConfig() || {};
+      this._fillDefaultOptions(options);
       var dateFormat = options.dateFormat || "yyyy-MM-dd";
 
       // Use hardcoded colors from KANBAN_COLORS configuration
@@ -1227,13 +1826,13 @@ define([
       ];
       var gapPx = 8;
 
-      var metaText = messages.TASK_COUNT_LABEL + ": " + (tasks ? tasks.length : 0);
+      var metaText = messages.TASK_COUNT_LABEL + ": <strong>" + (tasks ? tasks.length : 0) + "</strong>";
       var flaggedRedCount = tasks.filter(function(t) { return t.conditionFlagRed; }).length;
       var flaggedYellowCount = tasks.filter(function(t) { return t.conditionFlagYellow && !t.conditionFlagRed; }).length;
       if (flaggedRedCount > 0 || flaggedYellowCount > 0) {
         var flagParts = [];
-        if (flaggedRedCount > 0) flagParts.push(messages.OVERDUE_LABEL + ": " + flaggedRedCount);
-        if (flaggedYellowCount > 0) flagParts.push(messages.DUE_IN_30_DAYS_LABEL + ": " + flaggedYellowCount);
+        if (flaggedRedCount > 0) flagParts.push(messages.OVERDUE_LABEL + ": <strong>" + flaggedRedCount + "</strong>");
+        if (flaggedYellowCount > 0) flagParts.push(messages.DUE_IN_30_DAYS_LABEL + ": <strong>" + flaggedYellowCount + "</strong>");
         metaText += " | " + flagParts.join(", ");
       }
 
@@ -1266,7 +1865,7 @@ define([
         "<div class='kanban-board' style='box-sizing:border-box;width:100%;max-width:100%;padding:0 4px;margin:0 auto;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:stretch;justify-content:flex-start;column-gap:" + gapPx + "px;overflow-x:hidden;overflow-y:auto;'>";
 
       var boardHtmlCols = laneOrder.map(function(laneName){
-        return renderLane(laneName, grouped[laneName] || [], flagColors);
+        return renderLane(laneName, grouped[laneName] || [], flagColors, options);
       }).join("");
 
       var boardHtmlClose = "</div>";
@@ -1297,17 +1896,21 @@ define([
             clearTimeout(self._resizeTimer);
           }
           self._resizeTimer = setTimeout(function () {
-            var headerEl2 = elContainer.querySelector('.kanban-header');
+            var currentContainer = self.getContainerElem();
+            if (!currentContainer) return;
+            var currentBoardEl = currentContainer.querySelector('.kanban-board');
+            if (!currentBoardEl) return;
+            var headerEl2 = currentContainer.querySelector('.kanban-header');
             var headerH2 = headerEl2 ? headerEl2.offsetHeight : 0;
-            var containerH2 = elContainer.clientHeight || 0;
+            var containerH2 = currentContainer.clientHeight || 0;
             var availableH2 = Math.max(0, containerH2 - headerH2);
             if (availableH2 <= 0) {
               availableH2 = Math.max(240, Math.floor(window.innerHeight * 0.6));
             }
-            boardEl.style.height = availableH2 + 'px';
-            boardEl.style.maxHeight = availableH2 + 'px';
-            boardEl.style.overflowY = 'auto';
-            applyResponsiveLaneWidths(boardEl, { gap: gapPx, minLane: 140, maxLane: 300 });
+            currentBoardEl.style.height = availableH2 + 'px';
+            currentBoardEl.style.maxHeight = availableH2 + 'px';
+            currentBoardEl.style.overflowY = 'auto';
+            applyResponsiveLaneWidths(currentBoardEl, { gap: gapPx, minLane: 140, maxLane: 300 });
           }, 60);
         };
         window.addEventListener('resize', this._onWindowResize);
@@ -1569,10 +2172,14 @@ define([
    * Set default options for visualization properties
    */
   KanbanViz.prototype._fillDefaultOptions = function(oOptions) {
-    if (!oOptions) return;
+    if (!oOptions) return oOptions;
 
     // Date format default
     oOptions.dateFormat = jsx.defaultParam(oOptions.dateFormat, "yyyy-MM-dd");
+    oOptions.showCompletionPct = jsx.defaultParam(oOptions.showCompletionPct, "true");
+    oOptions.row1Alignment = jsx.defaultParam(oOptions.row1Alignment, "center");
+    oOptions.row4Alignment = jsx.defaultParam(oOptions.row4Alignment, "center");
+    oOptions.row5Alignment = jsx.defaultParam(oOptions.row5Alignment, "left");
 
     // Condition colors - now using hex values directly
     oOptions.redColorValue = jsx.defaultParam(oOptions.redColorValue, "red");
@@ -1584,11 +2191,11 @@ define([
     oOptions.yellowFlagBorder = jsx.defaultParam(oOptions.yellowFlagBorder, "#e0d093");
 
     this.getSettings().setViewConfigJSON(dataviz.SettingsNS.CHART, oOptions);
+    return oOptions;
   };
 
   /**
-   * NOTE: Custom properties dialog is not supported in this Oracle Analytics version.
-   * To customize colors, edit the KANBAN_COLORS constant at the top of this file.
+   * Additional visualization properties are exposed through the OAC properties dialog.
    */
 
   /**
@@ -1601,6 +2208,18 @@ define([
     // Handle custom date format property (if dateFormat dropdown is available)
     if (sGadgetID === "dateFormat" || sGadgetID === "kanbanDateFormat") {
       conf.dateFormat = oPropChange.value;
+      oViewSettings.setViewConfigJSON(dataviz.SettingsNS.CHART, conf);
+      bUpdateSettings = true;
+    }
+
+    if (sGadgetID === "showCompletionPct") {
+      conf.showCompletionPct = oPropChange.value;
+      oViewSettings.setViewConfigJSON(dataviz.SettingsNS.CHART, conf);
+      bUpdateSettings = true;
+    }
+
+    if (sGadgetID === "row1Alignment" || sGadgetID === "row4Alignment" || sGadgetID === "row5Alignment") {
+      conf[sGadgetID] = oPropChange.value;
       oViewSettings.setViewConfigJSON(dataviz.SettingsNS.CHART, conf);
       bUpdateSettings = true;
     }
@@ -1635,6 +2254,95 @@ define([
     }
 
     return bUpdateSettings;
+  };
+
+  KanbanViz.prototype._addVizSpecificPropsDialog = function(oTabbedPanelsGadgetInfo) {
+    KanbanViz.superClass._addVizSpecificPropsDialog.call(this, oTabbedPanelsGadgetInfo);
+    this.doAddVizSpecificPropsDialog(this, oTabbedPanelsGadgetInfo);
+  };
+
+  KanbanViz.prototype.doAddVizSpecificPropsDialog = function(oTransientRenderingContext, oTabbedPanelsGadgetInfo) {
+    jsx.assertObject(oTransientRenderingContext, "oTransientRenderingContext");
+    jsx.assertInstanceOf(oTabbedPanelsGadgetInfo, gadgets.TabbedPanelsGadgetInfo, "oTabbedPanelsGadgetInfo", "obitech-application/gadgets.TabbedPanelsGadgetInfo");
+
+    var options = this._fillDefaultOptions(this.getViewConfig() || {});
+    var generalPanel = gadgetdialog.forcePanelByID(oTabbedPanelsGadgetInfo, euidef.GD_PANEL_ID_GENERAL);
+    generalPanel.setBodyCSSClass("bi_gadgets_no_cell_separator");
+    var nOrder = euidef.GD_FIELD_ORDER_GENERAL_VIZ_SPECIFIC;
+
+    var booleanOptions = [
+      new gadgets.OptionInfo('true', 'On'),
+      new gadgets.OptionInfo('false', 'Off')
+    ];
+    var alignmentOptions = [
+      new gadgets.OptionInfo('left', 'Left'),
+      new gadgets.OptionInfo('center', 'Center'),
+      new gadgets.OptionInfo('right', 'Right')
+    ];
+
+    nOrder += 1;
+    var showCompletionPctInfo = new gadgets.TextSwitcherGadgetInfo(
+      'showCompletionPct',
+      'Show % Completion',
+      'Show % Completion',
+      new gadgets.GadgetValueProperties(euidef.GadgetTypeIDs.TEXT_SWITCHER, String(options.showCompletionPct)),
+      nOrder,
+      null,
+      booleanOptions
+    );
+    showCompletionPctInfo.setGroupName('kanbanviz_props');
+    generalPanel.addChild(showCompletionPctInfo);
+
+    nOrder += 1;
+    var row1AlignmentInfo = new gadgets.TextSwitcherGadgetInfo(
+      'row1Alignment',
+      'Attribute 1: Alignement',
+      'Attribute 1: Alignement',
+      new gadgets.GadgetValueProperties(euidef.GadgetTypeIDs.TEXT_SWITCHER, String(options.row1Alignment)),
+      nOrder,
+      null,
+      alignmentOptions
+    );
+    row1AlignmentInfo.setGroupName('kanbanviz_props');
+    generalPanel.addChild(row1AlignmentInfo);
+
+    nOrder += 1;
+    var row4AlignmentInfo = new gadgets.TextSwitcherGadgetInfo(
+      'row4Alignment',
+      'Attribute 2: Alignement',
+      'Attribute 2: Alignement',
+      new gadgets.GadgetValueProperties(euidef.GadgetTypeIDs.TEXT_SWITCHER, String(options.row4Alignment)),
+      nOrder,
+      null,
+      alignmentOptions
+    );
+    row4AlignmentInfo.setGroupName('kanbanviz_props');
+    generalPanel.addChild(row4AlignmentInfo);
+
+    nOrder += 1;
+    var row5AlignmentInfo = new gadgets.TextSwitcherGadgetInfo(
+      'row5Alignment',
+      'Attribute 3: Alignement',
+      'Attribute 3: Alignement',
+      new gadgets.GadgetValueProperties(euidef.GadgetTypeIDs.TEXT_SWITCHER, String(options.row5Alignment)),
+      nOrder,
+      null,
+      alignmentOptions
+    );
+    row5AlignmentInfo.setGroupName('kanbanviz_props');
+    generalPanel.addChild(row5AlignmentInfo);
+
+    if (KanbanViz.superClass.doAddVizSpecificPropsDialog) {
+      KanbanViz.superClass.doAddVizSpecificPropsDialog.apply(this, arguments);
+    }
+  };
+
+  KanbanViz.prototype.handlePropChange = function() {
+    return this._handlePropChange.apply(this, arguments);
+  };
+
+  KanbanViz.prototype.addVizSpecificPropsDialog = function() {
+    return this._addVizSpecificPropsDialog.apply(this, arguments);
   };
 
   /**

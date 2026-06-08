@@ -1,19 +1,17 @@
-[0123/102626.280620:WARNING:resource_util.cc(94)] Please customize CefSettings.root_cache_path for your application. Use of the default value may lead to unintended process singleton behavior.
-[0123/102626.424578:INFO:logger.cpp(19)] DISPLAYING SPLASH SCREEN
-[0123/102632.414104:INFO:logger.cpp(19)] Jetty has started in: 6.018954
+[0608/182830.642224:WARNING:resource_util.cc(94)] Please customize CefSettings.root_cache_path for your application. Use of the default value may lead to unintended process singleton behavior.
+[0608/182830.882952:INFO:logger.cpp(19)] DISPLAYING SPLASH SCREEN
+[0608/182836.766142:INFO:logger.cpp(19)] Jetty has started in: 6.022328
 Copyright (c) 1997-2025 Oracle Corporation, All rights reserved
 Version 12.5.3.0.0
-[0123/102637.498787:INFO:logger.cpp(19)] BI Server has started in: 11.103866
-[0123/102637.499741:INFO:logger.cpp(19)] OBIPS has started in: 11.104842
-SLF4J(E): A service provider failed to instantiate:
-org.slf4j.spi.SLF4JServiceProvider: org.slf4j.jul.JULServiceProvider not a subtype
+[0608/182837.771441:INFO:logger.cpp(19)] OBIPS has started in: 7.027628
+[0608/182838.776807:INFO:logger.cpp(19)] BI Server has started in: 8.032995
 getJEEContainerVendorInfo: Examining MapViewer runtime servlet container info...
 MapViewer is running on: jetty/9.4.57.v20241219
 Looks like MapViewer is running on WLS: based on config file path
 Working around read-only FMW config folder ...
 Looks like MapViewer is running on WLS: based on config file path
 Figuring out alternative MapViewer workspace dir...
-Jan 23, 2026 10:26:52 AM oracle.lbs.util.ServerInitListener getOutOfWLSConfigFolder
+jun. 08, 2026 6:28:53 POP. oracle.lbs.util.ServerInitListener getOutOfWLSConfigFolder
 WARNING: Error validating MapViewer's workspace directory in a WLS domain.
 javax.naming.NameNotFoundException: jmx is not bound; remaining name 'jmx/runtime'
 	at org.eclipse.jetty.jndi.NamingContext.getContext(NamingContext.java:241)
@@ -49,49 +47,51 @@ javax.naming.NameNotFoundException: jmx is not bound; remaining name 'jmx/runtim
 	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
 	at java.base/java.lang.Thread.run(Thread.java:1583)
 
-2026-01-23 10:26:56.340 [144/Thread-40] INFO: oracle.mapviewer.MapperConfig - Temporary directory being used: /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/temp/
-2026-01-23 10:26:56.378 [144/Thread-40] INFO: oracle.mapviewer.sdovis - Using system default dpi: 127.0
-2026-01-23 10:26:56.381 [144/Thread-40] INFO: oracle.mapviewer.MapperConfig - Setting default dpi to: 96.0
-2026-01-23 10:26:56.383 [144/Thread-40] INFO: oracle.mapviewer.MapperConfig - Memory settings: max_map_image_size = 96 MB.
-2026-01-23 10:26:56.383 [144/Thread-40] INFO: oracle.mapviewer.MapperConfig - Memory settings: max_theme_features_loaded = -1 .
-2026-01-23 10:26:56.384 [144/Thread-40] INFO: oracle.mapviewer.MapperConfig - Memory settings: max_vector_tile_features_encoded = 125000 .
-2026-01-23 10:26:56.386 [144/Thread-40] WARNING: oracle.mapviewer.sdovis - In memory cache will be disabled.
-2026-01-23 10:26:56.395 [144/Thread-40] INFO: oracle.mapviewer.sdovis - Spatial Provider shapefileSDP has been registered.
-2026-01-23 10:26:56.396 [144/Thread-40] INFO: oracle.mapviewer.sdovis - Spatial Provider ogrSDP has been registered.
-2026-01-23 10:26:56.397 [144/Thread-40] WARNING: oracle.mapviewer.sdovis - Unable to get data provider instance for class oracle.sdovis.TeradataDataProvider
-2026-01-23 10:26:56.397 [144/Thread-40] SEVERE: oracle.mapviewer.sdovis - Unable to get an instance for spatial provider teradataSDP
-2026-01-23 10:26:56.397 [144/Thread-40] WARNING: oracle.mapviewer.sdovis - Spatial Provider teradataSDP has not been registered.
-2026-01-23 10:26:56.397 [144/Thread-40] INFO: oracle.mapviewer.MapperConfig - Setting default map storage folder to: /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/images/
-2026-01-23 10:26:56.398 [144/Thread-40] INFO: oracle.mapviewer.MapperConfig - Map Recycling thread started.
-2026-01-23 10:26:56.398 [144/Thread-40] INFO: oracle.mapviewer.MapperConfig - Data directory: /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/data/
-2026-01-23 10:26:56.402 [144/Thread-40] INFO: oracle.mapviewer.MapperConfig - WMS configuration file [/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/wmsConfig.xml] is loaded.
-2026-01-23 10:26:56.416 [144/Thread-40] INFO: oracle.mapviewer.ws - *** Oracle MapViewer started. ***
-2026-01-23 10:26:56.542 [28/pool-1-thread-1] INFO: oracle.mapviewer.ws - MapTileServer root path:  /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/
-2026-01-23 10:26:56.547 [152/Thread-44] INFO: oracle.mapviewer.ws - MapTileServer: entering Cold Start routine...
-2026-01-23 10:26:56.547 [152/Thread-44] INFO: oracle.mapviewer.ws - MapTileServer: creating internal tile cache server...
-2026-01-23 10:26:56.548 [28/pool-1-thread-1] INFO: oracle.mapviewer.suggest - *** Oracle Map Suggestion Server started. ***
-2026-01-23 10:26:56.550 [28/pool-1-thread-1] INFO: oracle.mapviewer.suggest - *** Oracle Map Suggestion Server (Firewall) started. ***
-2026-01-23 10:26:56.559 [152/Thread-44] INFO: oracle.mapviewer.ws - WMTS config file [/private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/conf/wmtsConfig.xml] does not exist, so all tile layers of all data sources will be accessible to WMTS request.
-2026-01-23 10:26:56.563 [152/Thread-44] INFO: oracle.mapviewer.ws - MapTileServer: created internal tile cache server.
-2026-01-23 10:26:56.563 [153/Thread-45] INFO: oracle.mapviewer.ws - MapViewer tile server updates monitor thread will stop.
-2026-01-23 10:26:56.616 [152/Thread-44] INFO: oracle.mapviewer.ws - MapTileServer: loading tile admin tasks ...
-2026-01-23 10:26:56.617 [152/Thread-44] INFO: oracle.mapviewer.ws - MapTileServer: finished loading tile admin tasks.
-2026-01-23 10:26:56.617 [152/Thread-44] INFO: oracle.mapviewer.ws - *** Oracle MapTileServer started. ***
-2026-01-23 10:26:56.808 [146/Thread-42] INFO: oracle.mapviewer.ws - *** Oracle Spatial Visualization Data Server starting... ***
-2026-01-23 10:26:56.809 [146/Thread-42] INFO: oracle.mapviewer.ws - *** Oracle Spatial Visualization Data Server started. ***
-2026-01-23 10:26:59.258 [142/Thread-38] INFO: oracle.mapviewer.suggest - IndexSyncManager constructor, for path:/private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/catalogs/oraclemaps_pub/96, waiting: 5 seconds.
-2026-01-23 10:26:59.265 [142/Thread-38] INFO: oracle.mapviewer.suggest - New indexing process received for indexing. Creating a new Thread...
-2026-01-23 10:26:59.266 [167/Thread-46] INFO: oracle.mapviewer.suggest - Sync Manager timer is started at Fri Jan 23 10:26:59 CET 2026
-2026-01-23 10:27:04.301 [167/Thread-46] INFO: oracle.mapviewer.suggest - Creating repository with LOCAL index.
-2026-01-23 10:27:04.316 [167/Thread-46] INFO: oracle.mapviewer.suggest - Synching index at /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/catalogs/oraclemaps_pub/96/_index_
-2026-01-23 10:27:04.320 [167/Thread-46] INFO: oracle.mapviewer.suggest - Current index is too old. A re-index will follow.
-2026-01-23 10:27:04.320 [167/Thread-46] INFO: oracle.mapviewer.suggest - Indexing failed, and deleteIndex flag set to false, then manually delete index an try again...
-2026-01-23 10:27:04.322 [167/Thread-46] INFO: oracle.mapviewer.suggest - Indexing: /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/catalogs/oraclemaps_pub/96
-2026-01-23 10:27:05.798 [167/Thread-46] INFO: oracle.mapviewer.suggest - AFTER retrying index, success= true
-2026-01-23 10:27:05.800 [167/Thread-46] INFO: oracle.mapviewer.suggest - Time spent rebuilding index: 1 second(s).
-2026-01-23 10:27:05.801 [167/Thread-46] INFO: oracle.mapviewer.suggest - Cleaning cache matches...
-2026-01-23 10:27:05.801 [167/Thread-46] INFO: oracle.mapviewer.suggest - New index is ready for oraclemaps_pub
-2026-01-23 10:27:05.801 [167/Thread-46] INFO: oracle.mapviewer.suggest - Indexing finished correctly for oraclemaps_pub
+2026-06-08 18:28:57.354 [110/Thread-37] INFO: oracle.mapviewer.MapperConfig - Temporary directory being used: /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/temp/
+2026-06-08 18:28:57.384 [110/Thread-37] INFO: oracle.mapviewer.sdovis - Using system default dpi: 127.0
+2026-06-08 18:28:57.384 [110/Thread-37] INFO: oracle.mapviewer.MapperConfig - Setting default dpi to: 96.0
+2026-06-08 18:28:57.385 [110/Thread-37] INFO: oracle.mapviewer.MapperConfig - Memory settings: max_map_image_size = 96 MB.
+2026-06-08 18:28:57.386 [110/Thread-37] INFO: oracle.mapviewer.MapperConfig - Memory settings: max_theme_features_loaded = -1 .
+2026-06-08 18:28:57.387 [110/Thread-37] INFO: oracle.mapviewer.MapperConfig - Memory settings: max_vector_tile_features_encoded = 125000 .
+2026-06-08 18:28:57.389 [110/Thread-37] WARNING: oracle.mapviewer.sdovis - In memory cache will be disabled.
+2026-06-08 18:28:57.397 [110/Thread-37] INFO: oracle.mapviewer.sdovis - Spatial Provider shapefileSDP has been registered.
+2026-06-08 18:28:57.398 [110/Thread-37] INFO: oracle.mapviewer.sdovis - Spatial Provider ogrSDP has been registered.
+2026-06-08 18:28:57.398 [110/Thread-37] WARNING: oracle.mapviewer.sdovis - Unable to get data provider instance for class oracle.sdovis.TeradataDataProvider
+2026-06-08 18:28:57.398 [110/Thread-37] SEVERE: oracle.mapviewer.sdovis - Unable to get an instance for spatial provider teradataSDP
+2026-06-08 18:28:57.398 [110/Thread-37] WARNING: oracle.mapviewer.sdovis - Spatial Provider teradataSDP has not been registered.
+2026-06-08 18:28:57.398 [110/Thread-37] INFO: oracle.mapviewer.MapperConfig - Setting default map storage folder to: /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/images/
+2026-06-08 18:28:57.399 [110/Thread-37] INFO: oracle.mapviewer.MapperConfig - Map Recycling thread started.
+2026-06-08 18:28:57.399 [110/Thread-37] INFO: oracle.mapviewer.MapperConfig - Data directory: /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/data/
+2026-06-08 18:28:57.403 [110/Thread-37] INFO: oracle.mapviewer.MapperConfig - WMS configuration file [/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/wmsConfig.xml] is loaded.
+2026-06-08 18:28:57.417 [110/Thread-37] INFO: oracle.mapviewer.ws - *** Oracle MapViewer started. ***
+2026-06-08 18:28:57.561 [28/pool-1-thread-1] INFO: oracle.mapviewer.ws - MapTileServer root path:  /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/
+2026-06-08 18:28:57.565 [117/Thread-41] INFO: oracle.mapviewer.ws - MapTileServer: entering Cold Start routine...
+2026-06-08 18:28:57.565 [117/Thread-41] INFO: oracle.mapviewer.ws - MapTileServer: creating internal tile cache server...
+2026-06-08 18:28:57.566 [28/pool-1-thread-1] INFO: oracle.mapviewer.suggest - *** Oracle Map Suggestion Server started. ***
+2026-06-08 18:28:57.569 [28/pool-1-thread-1] INFO: oracle.mapviewer.suggest - *** Oracle Map Suggestion Server (Firewall) started. ***
+2026-06-08 18:28:57.579 [117/Thread-41] INFO: oracle.mapviewer.ws - WMTS config file [/private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/mapviewer/conf/wmtsConfig.xml] does not exist, so all tile layers of all data sources will be accessible to WMTS request.
+2026-06-08 18:28:57.582 [117/Thread-41] INFO: oracle.mapviewer.ws - MapTileServer: created internal tile cache server.
+2026-06-08 18:28:57.582 [118/Thread-42] INFO: oracle.mapviewer.ws - MapViewer tile server updates monitor thread will stop.
+2026-06-08 18:28:57.623 [117/Thread-41] INFO: oracle.mapviewer.ws - MapTileServer: loading tile admin tasks ...
+2026-06-08 18:28:57.624 [117/Thread-41] INFO: oracle.mapviewer.ws - MapTileServer: finished loading tile admin tasks.
+2026-06-08 18:28:57.625 [117/Thread-41] INFO: oracle.mapviewer.ws - *** Oracle MapTileServer started. ***
+2026-06-08 18:28:57.820 [112/Thread-39] INFO: oracle.mapviewer.ws - *** Oracle Spatial Visualization Data Server starting... ***
+2026-06-08 18:28:57.820 [112/Thread-39] INFO: oracle.mapviewer.ws - *** Oracle Spatial Visualization Data Server started. ***
+2026-06-08 18:28:59.968 [106/Thread-35] INFO: oracle.mapviewer.suggest - IndexSyncManager constructor, for path:/private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/catalogs/oraclemaps_pub/67, waiting: 5 seconds.
+2026-06-08 18:28:59.972 [106/Thread-35] INFO: oracle.mapviewer.suggest - New indexing process received for indexing. Creating a new Thread...
+2026-06-08 18:28:59.973 [132/Thread-43] INFO: oracle.mapviewer.suggest - Sync Manager timer is started at Mon Jun 08 18:28:59 CEST 2026
+2026-06-08 18:29:05.005 [132/Thread-43] INFO: oracle.mapviewer.suggest - Creating repository with LOCAL index.
+2026-06-08 18:29:05.025 [132/Thread-43] INFO: oracle.mapviewer.suggest - Synching index at /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/catalogs/oraclemaps_pub/67/_index_
+2026-06-08 18:29:05.031 [132/Thread-43] INFO: oracle.mapviewer.suggest - Current index is too old. A re-index will follow.
+2026-06-08 18:29:05.032 [132/Thread-43] INFO: oracle.mapviewer.suggest - Indexing failed, and deleteIndex flag set to false, then manually delete index an try again...
+2026-06-08 18:29:05.034 [132/Thread-43] INFO: oracle.mapviewer.suggest - Indexing: /private/var/folders/zx/87_qf5dj0jgfmqzcgf9bq8vm0000gn/T/DVDesktop/config/fmwconfig/biconfig/catalogs/oraclemaps_pub/67
+2026-06-08 18:29:06.596 [132/Thread-43] INFO: oracle.mapviewer.suggest - AFTER retrying index, success= true
+2026-06-08 18:29:06.600 [132/Thread-43] INFO: oracle.mapviewer.suggest - Time spent rebuilding index: 1 second(s).
+2026-06-08 18:29:06.601 [132/Thread-43] INFO: oracle.mapviewer.suggest - Cleaning cache matches...
+2026-06-08 18:29:06.601 [132/Thread-43] INFO: oracle.mapviewer.suggest - New index is ready for oraclemaps_pub
+2026-06-08 18:29:06.602 [132/Thread-43] INFO: oracle.mapviewer.suggest - Indexing finished correctly for oraclemaps_pub
+SLF4J(E): A service provider failed to instantiate:
+org.slf4j.spi.SLF4JServiceProvider: org.slf4j.jul.JULServiceProvider not a subtype
 java.lang.Exception: Cannot Configure ServiceLogger,Please correct the System Property weblogic.Name
 	at oracle.bi.biplatform.servicelogs.util.ServiceLoggerUtil.getLogFilePath(ServiceLoggerUtil.java:276)
 	at oracle.bi.biplatform.servicelogs.util.ServiceLoggerUtil.getHandler(ServiceLoggerUtil.java:77)

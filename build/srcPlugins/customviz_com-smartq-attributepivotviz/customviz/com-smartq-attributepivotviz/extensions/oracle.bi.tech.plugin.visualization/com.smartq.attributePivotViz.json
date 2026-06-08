@@ -1,0 +1,65 @@
+{
+  "id": "com.smartq.attributePivotViz",
+  "version": "1.0.19",
+  "host": {
+    "script": {
+      "module": "com-smartq-attributepivotviz/attributePivotViz",
+      "method": "createClientComponent"
+    },
+    "vizSettings": {
+      "_version": "1.0.19",
+      "viewConfig": {
+        "viz:chart": {
+          "type": "com.smartq.attributePivotViz",
+          "dataValues": true,
+          "attrPivotFormatting": {
+            "showEdgeLabels": true,
+            "showValues": true,
+            "showAllValues": "auto",
+            "valueAlignment": "center",
+            "valueFormat": "auto",
+            "compressRows": "auto",
+            "compressCols": "auto",
+            "rowDensity": "compact",
+            "bandedRows": false,
+            "columnWidths": {},
+            "columnWidthsVersion": "1.0.19",
+            "sortStateVersion": "1.0.19",
+            "sortState": []
+          },
+          "attrPivotSortState": [],
+          "attrPivotSortStateVersion": "1.0.19",
+          "attrPivotColumnWidths": {},
+          "attrPivotColumnWidthsVersion": "1.0.19"
+        }
+      }
+    }
+  },
+  "resourceBundle": "com-smartq-attributepivotviz/nls/messages",
+  "properties": {
+    "displayName": {
+      "key": "ATTRIBUTEPIVOTVIZ_DISPLAY_NAME",
+      "default": "Attribute Pivot"
+    },
+    "shortDisplayName": {
+      "key": "ATTRIBUTEPIVOTVIZ_SHORT_DISPLAY_NAME",
+      "default": "Attr Pivot"
+    },
+    "category": {
+      "key": "ATTRIBUTEPIVOTVIZ_CATEGORY",
+      "default": "SmartQ Custom Viz"
+    },
+    "customSettings": {},
+    "categoryOrder": 500,
+    "icon": "attributePivotVizIcon",
+
+    "dataModelHandler": "com.smartq.attributePivotViz.visualizationDatamodelHandler",
+
+    "dataModelGovernor": {
+      "dm1": { "rows": 50000, "columns": 5000 }
+    },
+
+    "isEmbeddable": false,
+    "isMarkingSupported": true
+  }
+}

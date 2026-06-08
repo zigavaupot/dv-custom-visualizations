@@ -6,6 +6,8 @@ define({
   "KANBANVIZ_ROW": "Aufgabe",
   "KANBANVIZ_MEASURE": "Abschluss %",
   "KANBANVIZ_COLOR": "Farbe",
+  "KANBANVIZ_CONDITIONAL_FORMATTING": "Conditional Formatting",
+  "KANBANVIZ_URL": "URL",
   "KANBANVIZ_TOOLTIP": "Tooltip",
 
   // UI Labels
